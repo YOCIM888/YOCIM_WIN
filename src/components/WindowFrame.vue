@@ -1,11 +1,12 @@
 <template>
-  <div
-    v-if="!window.minimized"
-    class="window-frame"
-    :class="{ focused, maximized: window.maximized }"
-    :style="windowStyle"
-    @mousedown="focusWindow(window.id)"
-  >
+  <Transition name="win">
+    <div
+      v-if="!window.minimized"
+      class="window-frame"
+      :class="{ focused, maximized: window.maximized }"
+      :style="windowStyle"
+      @mousedown="focusWindow(window.id)"
+    >
     <!-- Title Bar -->
     <div class="titlebar" @mousedown="startDrag" @dblclick="wm.maximizeWindow(window.id)">
       <div class="titlebar-left">
@@ -38,6 +39,7 @@
       <div class="resize-handle sw" @mousedown.stop="startResize($event, 'sw')"></div>
     </template>
   </div>
+  </Transition>
 </template>
 
 <script setup>
@@ -182,6 +184,13 @@ function focusWindow(id) {
 @keyframes windowOpen {
   from { transform: scale(0.92); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
+}
+/* Minimize/close transitions */
+.win-enter-active { animation: windowOpen 0.2s ease-out; }
+.win-leave-active { animation: windowClose 0.18s ease-in; }
+@keyframes windowClose {
+  from { transform: scale(1); opacity: 1; }
+  to { transform: scale(0.9); opacity: 0; }
 }
 
 .titlebar {

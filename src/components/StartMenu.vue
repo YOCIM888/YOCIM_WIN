@@ -58,6 +58,22 @@
           </div>
         </div>
 
+        <!-- Recent Apps -->
+        <div v-if="ui.recentApps.length" class="start-section">
+          <div class="section-title">最近使用</div>
+          <div class="start-list">
+            <button
+              v-for="app in ui.recentApps.slice(0, 5)"
+              :key="'recent-' + app.id"
+              class="start-list-item"
+              @click="launchApp(app); ui.closeAll()"
+            >
+              <span class="app-icon-sm">{{ app.icon }}</span>
+              <span>{{ app.label }}</span>
+            </button>
+          </div>
+        </div>
+
         <!-- All Apps -->
         <div class="start-section">
           <div class="section-title">所有应用</div>
@@ -121,7 +137,7 @@ const allApps = [
   { id: 'taskmgr', label: '任务管理器', icon: '📊', app: 'taskmgr', args: {} },
   { id: 'cmd', label: '命令提示符', icon: '▷', app: 'terminal', args: {} },
   { id: 'paint', label: '画图', icon: '🎨', app: 'placeholder', args: { title: '画图', icon: '🎨', description: '赛博朋克风格绘图工具即将上线。' } },
-  { id: 'calc', label: '计算器', icon: '🔢', app: 'placeholder', args: { title: '计算器', icon: '🔢', description: '支持炫酷霓虹界面的科学计算器。' } },
+  { id: 'calc', label: '计算器', icon: '🔢', app: 'calc', args: {} },
   { id: 'network', label: '网络中心', icon: '🌐', app: 'placeholder', args: { title: '网络中心', icon: '🌐', description: '网络配置和诊断工具正在开发中。' } },
 ]
 

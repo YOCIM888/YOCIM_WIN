@@ -44,6 +44,9 @@
 
     <!-- Toast Layer -->
     <ToastLayer />
+
+    <!-- Lock Screen -->
+    <LockScreen />
   </div>
 </template>
 
@@ -73,6 +76,8 @@ import RecycleBin from './components/RecycleBin.vue'
 import PlaceholderApp from './components/PlaceholderApp.vue'
 import TaskManager from './components/TaskManager.vue'
 import ToastLayer from './components/ToastLayer.vue'
+import LockScreen from './components/LockScreen.vue'
+import Calculator from './components/Calculator.vue'
 
 const {
   windows,
@@ -93,6 +98,8 @@ const {
   getWindow,
 } = useWindowManager()
 
+const deselectKey = ref(0)
+
 const appComponents = {
   explorer: FileExplorer,
   terminal: Terminal,
@@ -101,6 +108,7 @@ const appComponents = {
   recycle: RecycleBin,
   placeholder: PlaceholderApp,
   taskmgr: TaskManager,
+  calc: Calculator,
 }
 
 function getAppComponent(app) {
@@ -108,6 +116,7 @@ function getAppComponent(app) {
 }
 
 function openApp(icon) {
+  uiState.addRecent({ id: icon.id, label: icon.label, icon: icon.icon, app: icon.app, args: icon.args || {} })
   openWindow(icon.app, {
     title: icon.label,
     icon: icon.icon,
@@ -117,6 +126,7 @@ function openApp(icon) {
 
 function onDesktopClick() {
   uiState.closeAll()
+  deselectKey.value++
 }
 
 function onDesktopContext(e) {
@@ -173,6 +183,7 @@ const wmProvided = {
 }
 provide('wm', wmProvided)
 provide('notif', notifStore)
+provide('deselectKey', deselectKey)
 setupKeyboardShortcuts(wmProvided)
 
 // Sync display settings to CSS custom properties

@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject, watch } from 'vue'
 
 const props = defineProps({
   icon: Object,
@@ -27,6 +27,10 @@ const offsetY = ref(0)
 let startX = 0, startY = 0
 
 const dragStyle = ref({})
+
+// Deselect when clicking desktop background
+const deselectKey = inject('deselectKey', ref(0))
+watch(deselectKey, () => { selected.value = false })
 
 function startDrag(e) {
   if (e.button !== 0) return

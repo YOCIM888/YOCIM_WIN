@@ -147,6 +147,28 @@ function onKeydown(e) {
   if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveFile(); return }
   if (e.ctrlKey && e.key === 'n') { e.preventDefault(); newFile(); return }
   if (e.ctrlKey && e.key === 'o') { e.preventDefault(); openFromFS(); return }
+  if (e.ctrlKey && e.key === 'c') {
+    if (window.getSelection) {
+      const sel = window.getSelection().toString()
+      if (sel) navigator.clipboard?.writeText(sel).catch(() => {})
+    }
+    return
+  }
+  if (e.ctrlKey && e.key === 'v') {
+    e.preventDefault()
+    navigator.clipboard?.readText().then(t => {
+      if (t) {
+        const el = editorEl.value
+        if (el) {
+          const start = el.selectionStart
+          const end = el.selectionEnd
+          text.value = text.value.slice(0, start) + t + text.value.slice(end)
+          nextTick(() => el.setSelectionRange(start + t.length, start + t.length))
+        }
+      }
+    }).catch(() => {})
+    return
+  }
   if ((e.ctrlKey && e.key === 'f') || (e.ctrlKey && e.key === 'h')) {
     e.preventDefault()
     findVisible.value = !findVisible.value
