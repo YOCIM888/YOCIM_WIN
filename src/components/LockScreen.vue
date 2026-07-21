@@ -97,6 +97,6 @@ onUnmounted(() => clearInterval(timer))
   letter-spacing: 2px;
 }
 .lockscreen-enter-active { transition: opacity 0.3s; }
-.lockscreen-leave-active { transition: opacity 0.4s; }
+.lockscreen-leave-active { transition: opacity 0.4s; pointer-events: none; }
 .lockscreen-leave-to { opacity: 0; }
 </style>

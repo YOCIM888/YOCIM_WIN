@@ -39,7 +39,17 @@
         @contextmenu.prevent.stop="onItemContext($event, item)"
       >
         <span class="item-icon">{{ item.type === 'dir' ? '📁' : getFileIcon(item.name) }}</span>
-        <span class="item-name">{{ item.name }}</span>
+        <input
+          v-if="renamingItem === item.key"
+          class="rename-input"
+          v-model="renameValue"
+          @keydown.enter="commitRename(item)"
+          @keydown.escape="renamingItem = null"
+          @blur="commitRename(item)"
+          ref="renameInputEl"
+          @click.stop
+        />
+        <span v-else class="item-name">{{ item.name }}</span>
         <span v-if="item.type === 'file'" class="item-size">{{ item.size }}</span>
       </div>
       <div v-if="items.length === 0 && currentPath !== '/'" class="empty-dir">
@@ -55,7 +65,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, nextTick } from 'vue'
 import { fileSystem } from '../composables/useFileSystem.js'
 import { recycleBin } from '../composables/useRecycleBin.js'
 import { contextMenu } from '../composables/useContextMenu.js'
@@ -74,6 +84,9 @@ const history = ref([currentPath.value])
 const historyIdx = ref(0)
 const refreshCounter = ref(0)
 const sortBy = ref('name') // 'name' | 'type'
+const renamingItem = ref(null)
+const renameValue = ref('')
+const renameInputEl = ref(null)
 
 const items = computed(() => {
   void refreshCounter.value
@@ -148,7 +161,29 @@ function openItem(item) {
 }
 
 function selectItem(item) {
-  selectedItem.value = item.key
+  if (selectedItem.value === item.key) {
+    // second click → rename
+    renamingItem.value = item.key
+    renameValue.value = item.name
+    nextTick(() => renameInputEl.value?.focus?.())
+  } else {
+    selectedItem.value = item.key
+    renamingItem.value = null
+  }
+}
+
+function commitRename(item) {
+  if (!renamingItem.value) return
+  const newName = renameValue.value.trim()
+  if (newName && newName !== item.name) {
+    const src = currentPath.value === '/' ? `/${item.key}` : `${currentPath.value}/${item.key}`
+    if (fileSystem.renameItem(src, newName)) {
+      notif.add('重命名', `已重命名为 "${newName}"`, 'success')
+    } else {
+      notif.add('重命名', '重命名失败', 'error')
+    }
+  }
+  renamingItem.value = null
 }
 
 function getFileIcon(name) {
@@ -323,6 +358,19 @@ function onItemContext(e, item) {
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
+}
+.rename-input {
+  width: 100%;
+  background: rgba(0,0,0,0.5);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 3px;
+  padding: 2px 4px;
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: center;
+  outline: none;
+  box-shadow: 0 0 6px rgba(0,240,255,0.3);
 }
 .item-size {
   font-size: 9px;

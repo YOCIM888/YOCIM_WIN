@@ -24,6 +24,7 @@
         class="taskbar-item"
         :class="{ active: focusId === win.id && !win.minimized }"
         @click="onTaskClick(win)"
+        @contextmenu.prevent.stop="onTaskContext($event, win)"
         @mouseenter="hoveredWin = win.id"
         @mouseleave="hoveredWin = null"
       >
@@ -54,6 +55,7 @@
 import { ref, inject, onMounted, onUnmounted, computed } from 'vue'
 import { uiState } from '../composables/uiState.js'
 import { pinnedTasks } from '../composables/usePinnedTasks.js'
+import { contextMenu } from '../composables/useContextMenu.js'
 
 const wm = inject('wm')
 const notif = inject('notif')
@@ -99,6 +101,15 @@ function onPinnedClick(pin) {
   } else {
     wm.openWindow(pin.app, { title: pin.label, icon: pin.icon, props: pin.args || {} })
   }
+}
+
+function onTaskContext(e, win) {
+  contextMenu.show(e.clientX, e.clientY, [
+    { label: win.minimized ? '还原' : '最小化', icon: win.minimized ? '🪟' : '─', action: () => wm.toggleMinimize(win.id) },
+    { label: '最大化', icon: '□', action: () => wm.maximizeWindow(win.id), disabled: win.maximized },
+    { type: 'separator' },
+    { label: '关闭窗口', icon: '✕', action: () => wm.closeWindow(win.id) },
+  ])
 }
 </script>
 

@@ -8,7 +8,7 @@
       @mousedown="focusWindow(window.id)"
     >
     <!-- Title Bar -->
-    <div class="titlebar" @mousedown="startDrag" @dblclick="wm.maximizeWindow(window.id)">
+    <div class="titlebar" @mousedown="startDrag" @dblclick="wm.maximizeWindow(window.id)" @contextmenu.prevent.stop="onTitlebarContext">
       <div class="titlebar-left">
         <span class="titlebar-icon">{{ window.icon }}</span>
         <span class="titlebar-title">{{ window.title }}</span>
@@ -44,6 +44,7 @@
 
 <script setup>
 import { computed, inject, ref } from 'vue'
+import { contextMenu } from '../composables/useContextMenu.js'
 
 const props = defineProps({
   window: Object,
@@ -51,6 +52,18 @@ const props = defineProps({
 })
 
 const wm = inject('wm')
+
+function onTitlebarContext(e) {
+  const win = props.window
+  contextMenu.show(e.clientX, e.clientY, [
+    { label: '还原', icon: '🪟', action: () => wm.maximizeWindow(win.id), disabled: !win.maximized },
+    { label: '移动', icon: '↕', action: () => {}, disabled: true },
+    { label: '最小化', icon: '─', action: () => wm.minimizeWindow(win.id), disabled: win.minimized },
+    { label: '最大化', icon: '□', action: () => wm.maximizeWindow(win.id), disabled: win.maximized },
+    { type: 'separator' },
+    { label: '关闭', icon: '✕', action: () => wm.closeWindow(win.id) },
+  ])
+}
 
 const windowStyle = computed(() => ({
   left: `${props.window.x}px`,

@@ -4,7 +4,7 @@
     <DesktopBackground />
 
     <!-- Desktop Icons -->
-    <div class="desktop-icons">
+    <div class="desktop-icons" :key="desktopRefreshKey">
       <DesktopIcon
         v-for="icon in desktopIcons"
         :key="icon.id"
@@ -99,6 +99,7 @@ const {
 } = useWindowManager()
 
 const deselectKey = ref(0)
+const desktopRefreshKey = ref(0)
 
 const appComponents = {
   explorer: FileExplorer,
@@ -131,7 +132,7 @@ function onDesktopClick() {
 
 function onDesktopContext(e) {
   contextMenu.show(e.clientX, e.clientY, [
-    { label: '刷新', icon: '🔄', action: () => notifStore.add('桌面', '桌面已刷新', 'info') },
+    { label: '刷新', icon: '🔄', action: () => { desktopRefreshKey.value++; notifStore.add('桌面', '桌面已刷新', 'info') } },
     { label: '新建文件夹', icon: '📁', action: () => {
       const name = '新建文件夹'
       let finalName = name
