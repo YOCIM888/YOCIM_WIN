@@ -41,7 +41,7 @@ export function useWindowManager() {
       props: { ...props },
       minimized: false,
       maximized: false,
-      zIndex: 1,
+      zIndex: 10,
       prevBounds: null,
     })
     windowOrder.push(id)
@@ -67,7 +67,7 @@ export function useWindowManager() {
     focusId.value = id
     // update z-indices
     windowOrder.forEach((wid, i) => {
-      if (windows[wid]) windows[wid].zIndex = i + 1
+      if (windows[wid]) windows[wid].zIndex = i + 10
     })
   }
 
