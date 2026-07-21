@@ -30,6 +30,7 @@
 <script setup>
 import { inject } from 'vue'
 import { recycleBin } from '../composables/useRecycleBin.js'
+import { showConfirm } from '../composables/useDialog.js'
 
 defineProps({ windowId: String })
 const notif = inject('notif')
@@ -47,9 +48,10 @@ function restoreAll() {
   notif.add('回收站', '所有项目已还原', 'success')
 }
 
-function emptyBin() {
+async function emptyBin() {
   if (items.length === 0) return
-  if (!window.confirm(`确定要永久删除回收站中的 ${items.length} 个项目吗？此操作不可恢复。`)) return
+  const ok = await showConfirm(`确定要永久删除回收站中的 ${items.length} 个项目吗？此操作不可恢复。`, '清空回收站')
+  if (!ok) return
   recycleBin.empty()
   notif.add('回收站', '回收站已清空', 'warning')
 }

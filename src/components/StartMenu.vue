@@ -108,6 +108,7 @@
 <script setup>
 import { inject, ref, computed, watch, nextTick } from 'vue'
 import { uiState } from '../composables/uiState.js'
+import { showConfirm } from '../composables/useDialog.js'
 
 const wm = inject('wm')
 const notif = inject('notif')
@@ -158,16 +159,16 @@ function launchApp(app) {
   })
 }
 
-function doShutdown() {
+async function doShutdown() {
+  const ok = await showConfirm('确定要关闭所有窗口吗？', '关机')
+  if (!ok) return
   ui.closeAll()
-  // close all windows
   wm.windowList.value.forEach(w => wm.closeWindow(w.id))
   notif.add('系统', '系统已关机', 'warning')
 }
 
 function doRestart() {
   ui.closeAll()
-  // close all windows
   wm.windowList.value.forEach(w => wm.closeWindow(w.id))
   notif.add('系统', '系统已重启', 'info')
 }

@@ -9,7 +9,7 @@
     <!-- Desktop Icons -->
     <div class="desktop-icons" :key="desktopRefreshKey">
       <DesktopIcon
-        v-for="icon in desktopIcons"
+        v-for="icon in allDesktopIcons"
         :key="icon.id"
         :icon="icon"
         :badge="icon.id === 'recycle' ? recycleBin.items.length : 0"
@@ -50,11 +50,14 @@
 
     <!-- Lock Screen -->
     <LockScreen />
+
+    <!-- Cyber Dialog -->
+    <CyberDialog ref="cyberDialogRef" />
   </div>
 </template>
 
 <script setup>
-import { ref, provide, watch } from 'vue'
+import { ref, provide, watch, computed, onMounted } from 'vue'
 import { useWindowManager } from './composables/useWindowManager.js'
 import { notifStore } from './composables/useNotifications.js'
 import { contextMenu } from './composables/useContextMenu.js'
@@ -82,6 +85,8 @@ import ToastLayer from './components/ToastLayer.vue'
 import LockScreen from './components/LockScreen.vue'
 import Calculator from './components/Calculator.vue'
 import DesktopLogo from './components/DesktopLogo.vue'
+import CyberDialog from './components/CyberDialog.vue'
+import { setDialogRef } from './composables/useDialog.js'
 
 const {
   windows,
@@ -104,6 +109,26 @@ const {
 
 const deselectKey = ref(0)
 const desktopRefreshKey = ref(0)
+const cyberDialogRef = ref(null)
+
+// set dialog ref after mount for global access
+onMounted(() => { setDialogRef(cyberDialogRef.value) })
+
+// Combine system icons with files from Desktop directory
+const allDesktopIcons = computed(() => {
+  void desktopRefreshKey.value
+  const desktopFiles = fileSystem.getChildren('/Users/Yocim/Desktop')
+  const dynamicIcons = desktopFiles.map(f => ({
+    id: 'desktop-' + f.key,
+    label: f.name,
+    icon: f.type === 'dir' ? '📁' : '📄',
+    app: f.type === 'dir' ? 'explorer' : 'notepad',
+    args: f.type === 'dir'
+      ? { path: '/Users/Yocim/Desktop/' + f.key }
+      : { filename: f.name, filePath: '/Users/Yocim/Desktop/' + f.key, content: f.content || '' },
+  }))
+  return [...desktopIcons, ...dynamicIcons]
+})
 
 const appComponents = {
   explorer: FileExplorer,
