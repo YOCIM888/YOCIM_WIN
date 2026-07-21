@@ -2,6 +2,9 @@ import { reactive, ref, computed } from 'vue'
 
 let nextId = 1
 const genId = () => `win_${nextId++}`
+let cascadeX = 60
+let cascadeY = 40
+const CASCADE_STEP = 30
 
 const windows = reactive({})
 const windowOrder = reactive([]) // z-index order, last = top
@@ -22,8 +25,13 @@ export function useWindowManager() {
     const maxH = window.innerHeight - 48
     const w = Math.min(width, maxW)
     const h = Math.min(height, maxH)
-    const defaultX = x ?? (80 + Math.random() * 120)
-    const defaultY = y ?? (40 + Math.random() * 80)
+    const defaultX = x ?? cascadeX
+    const defaultY = y ?? cascadeY
+    // advance cascade, wrap if near edge
+    cascadeX = (cascadeX + CASCADE_STEP) % (maxW - 200)
+    if (cascadeX < 60) cascadeX = 60
+    cascadeY = (cascadeY + CASCADE_STEP) % (maxH - 200)
+    if (cascadeY < 40) cascadeY = 40
 
     windows[id] = reactive({
       id,

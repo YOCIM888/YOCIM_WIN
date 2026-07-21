@@ -9,6 +9,7 @@ export const displaySettings = reactive({
   neonBrightness: saved?.neonBrightness ?? 80,
   scanlines: saved?.scanlines ?? 40,
   accent: saved?.accent ?? 'cyan',
+  wallpaper: saved?.wallpaper ?? 'particles',
 })
 
 watch(() => ({ ...displaySettings }), (v) => {

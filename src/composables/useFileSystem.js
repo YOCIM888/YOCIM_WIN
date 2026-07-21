@@ -101,8 +101,15 @@ function createFS() {
     if (!node || node.type !== 'dir') return []
     return Object.entries(node.children || {}).map(([key, val]) => ({
       key,
-      ...val
+      ...val,
+      size: val.type === 'file' ? formatSize((val.content || '').length) : val.size || '',
     }))
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
   function getParentPath(path) {
@@ -128,7 +135,6 @@ function createFS() {
     dir.children[name] = {
       type: 'file',
       name,
-      size: `${content.length} B`,
       content,
     }
     return true
@@ -177,7 +183,6 @@ function createFS() {
     const node = resolvePath(path)
     if (!node || node.type !== 'file') return false
     node.content = content
-    node.size = `${content.length} B`
     return true
   }
 

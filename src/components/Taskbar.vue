@@ -24,9 +24,16 @@
         class="taskbar-item"
         :class="{ active: focusId === win.id && !win.minimized }"
         @click="onTaskClick(win)"
+        @mouseenter="hoveredWin = win.id"
+        @mouseleave="hoveredWin = null"
       >
         <span class="taskbar-item-icon">{{ win.icon }}</span>
         <span class="taskbar-item-title">{{ win.title }}</span>
+        <!-- Thumbnail preview -->
+        <div v-if="hoveredWin === win.id && !win.minimized" class="win-thumb">
+          <span class="thumb-icon">{{ win.icon }}</span>
+          <span class="thumb-title">{{ win.title }}</span>
+        </div>
       </button>
     </div>
     <div class="taskbar-right">
@@ -58,6 +65,7 @@ const focusId = computed(() => wm.focusId.value)
 
 const time = ref('')
 const date = ref('')
+const hoveredWin = ref(null)
 let clockInterval
 
 function updateClock() {
@@ -178,6 +186,33 @@ function onPinnedClick(pin) {
 }
 .taskbar-item-icon { font-size: 16px; flex-shrink: 0; }
 .taskbar-item-title { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.win-thumb {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 8px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 0 20px rgba(0,240,255,0.2), 0 8px 24px rgba(0,0,0,0.6);
+  z-index: 200;
+  pointer-events: none;
+  animation: fadeIn 0.15s ease-out;
+}
+.thumb-icon { font-size: 28px; }
+.thumb-title {
+  font-size: 11px;
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
 
 .tray-btn {
   position: relative;

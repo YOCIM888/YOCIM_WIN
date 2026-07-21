@@ -47,6 +47,15 @@
               <option value="orange">火焰橙</option>
             </select>
           </label>
+          <label class="setting-row">
+            <span>壁纸</span>
+            <select v-model="display.wallpaper">
+              <option value="particles">霓虹粒子</option>
+              <option value="grid">赛博网格</option>
+              <option value="dark">纯黑</option>
+              <option value="matrix">矩阵雨</option>
+            </select>
+          </label>
         </div>
       </div>
 
