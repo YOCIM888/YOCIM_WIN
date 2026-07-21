@@ -51,7 +51,7 @@
 </template>
 
 <script setup>
-import { provide, watch } from 'vue'
+import { ref, provide, watch } from 'vue'
 import { useWindowManager } from './composables/useWindowManager.js'
 import { notifStore } from './composables/useNotifications.js'
 import { contextMenu } from './composables/useContextMenu.js'
