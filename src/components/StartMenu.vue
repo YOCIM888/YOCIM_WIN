@@ -100,15 +100,6 @@ const ui = uiState
 const searchQuery = ref('')
 const searchEl = ref(null)
 
-// all apps combined for search
-const allAppsFlat = [...pinnedApps, ...allApps]
-
-const filteredApps = computed(() => {
-  const q = searchQuery.value.toLowerCase().trim()
-  if (!q) return allAppsFlat
-  return allAppsFlat.filter(a => a.label.toLowerCase().includes(q))
-})
-
 // auto-focus search when menu opens, clear when closes
 watch(() => ui.startMenuOpen, (open) => {
   if (open) {
@@ -133,6 +124,15 @@ const allApps = [
   { id: 'calc', label: '计算器', icon: '🔢', app: 'placeholder', args: { title: '计算器', icon: '🔢', description: '支持炫酷霓虹界面的科学计算器。' } },
   { id: 'network', label: '网络中心', icon: '🌐', app: 'placeholder', args: { title: '网络中心', icon: '🌐', description: '网络配置和诊断工具正在开发中。' } },
 ]
+
+// all apps combined for search
+const allAppsFlat = [...pinnedApps, ...allApps]
+
+const filteredApps = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim()
+  if (!q) return allAppsFlat
+  return allAppsFlat.filter(a => a.label.toLowerCase().includes(q))
+})
 
 function launchApp(app) {
   wm.openWindow(app.app, {
