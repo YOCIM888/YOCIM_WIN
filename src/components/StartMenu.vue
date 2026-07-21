@@ -179,7 +179,7 @@ function doRestart() {
   position: absolute;
   bottom: 48px;
   left: 0;
-  z-index: 99;
+  z-index: 101;
 }
 .start-panel {
   width: 320px;

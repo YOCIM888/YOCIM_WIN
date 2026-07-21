@@ -247,16 +247,11 @@ function onItemContext(e, item) {
       }
     }},
     { label: '重命名', icon: '✏️', action: () => {
-      const newName = prompt('重命名:', item.name)
-      if (newName && newName !== item.name) {
-        const src = fullPath(item.key)
-        if (fileSystem.renameItem(src, newName)) {
-          notif.add('重命名', `已重命名为 "${newName}"`, 'success')
-          selectedItem.value = null
-        } else {
-          notif.add('重命名', '重命名失败（名称重复或无效）', 'error')
-        }
-      }
+      // trigger inline rename mode
+      selectedItem.value = item.key
+      renamingItem.value = item.key
+      renameValue.value = item.name
+      nextTick(() => renameInputEl.value?.focus?.())
     }},
     { type: 'separator' },
     { label: '属性', icon: '📋', action: () => notif.add('属性', `${item.name} - 类型: ${item.type === 'dir' ? '文件夹' : '文件'}`, 'info') },

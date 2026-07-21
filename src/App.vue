@@ -196,17 +196,56 @@ function onDesktopContext(e) {
 }
 
 function onIconContext(e, icon) {
-  contextMenu.show(e.clientX, e.clientY, [
+  const isDynamic = icon.id && icon.id.startsWith('desktop-')
+  const menuItems = [
     { label: `打开 ${icon.label}`, icon: '🖱️', action: () => openApp(icon) },
     { type: 'separator' },
+  ]
+  if (isDynamic) {
+    const fp = icon.args?.filePath || icon.args?.path
+    menuItems.push(
+      { label: '删除', icon: '🗑️', action: () => {
+        if (fp && recycleBin.add(fp)) {
+          notifStore.add('桌面', `"${icon.label}" 已移至回收站`, 'warning')
+          desktopRefreshKey.value++
+        }
+      }},
+      { label: '重命名', icon: '✏️', action: () => {
+        const newName = prompt('重命名:', icon.label)
+        if (newName && newName !== icon.label && fp && fileSystem.renameItem(fp, newName)) {
+          notifStore.add('桌面', `已重命名为 "${newName}"`, 'success')
+          desktopRefreshKey.value++
+        }
+      }},
+    )
+  }
+  menuItems.push(
     { label: '以管理员身份运行', icon: '🛡️', action: () => openApp(icon) },
     { label: isPinned(icon.id) ? '从任务栏取消固定' : '固定到任务栏', icon: '📌', action: () => {
       const pinned = togglePinned({ id: icon.id, label: icon.label, icon: icon.icon, app: icon.app, args: icon.args || {} })
       notifStore.add('任务栏', pinned ? `${icon.label} 已固定` : `${icon.label} 已取消固定`, 'success')
     } },
     { type: 'separator' },
-    { label: '属性', icon: '📋', action: () => notifStore.add('属性', `${icon.label} 属性`, 'info') },
-  ])
+    { label: '属性', icon: '📋', action: () => showPropertyDialog(icon) },
+  )
+  contextMenu.show(e.clientX, e.clientY, menuItems)
+}
+
+function showPropertyDialog(icon) {
+  const fp = icon.args?.filePath || icon.args?.path
+  let info = `名称: ${icon.label}\n类型: ${icon.id?.startsWith('desktop-') ? (icon.args?.path ? '文件夹' : '文件') : '系统图标'}`
+  if (fp) {
+    const node = fileSystem.resolvePath(fp)
+    if (node) {
+      info += `\n路径: ${fp}`
+      info += `\n类型: ${node.type === 'dir' ? '文件夹' : '文件'}`
+      if (node.type === 'file') {
+        info += `\n大小: ${((node.content || '').length)} 字节`
+      }
+    }
+  }
+  // Open a notepad-like window with property info
+  openWindow('notepad', { title: `${icon.label} 属性`, icon: '📋', props: { filename: icon.label, content: info } })
 }
 
 // Provide window manager globally

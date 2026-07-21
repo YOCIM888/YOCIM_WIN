@@ -43,7 +43,7 @@ const ui = uiState
   position: absolute;
   bottom: 48px;
   right: 8px;
-  z-index: 99;
+  z-index: 101;
 }
 .notif-inner {
   width: 320px;
