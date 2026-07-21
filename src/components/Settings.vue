@@ -68,6 +68,50 @@
         </div>
       </div>
 
+      <!-- Time -->
+      <div v-if="activeTab === 'time'" class="settings-page">
+        <h3>时间和日期</h3>
+        <div class="setting-group">
+          <label class="setting-row">
+            <span>当前时间</span>
+            <span class="setting-val neon-text-cyan">{{ currentTime }}</span>
+          </label>
+          <label class="setting-row">
+            <span>时区</span>
+            <select v-model.number="timeSettings.timezone">
+              <option v-for="tz in timezones" :key="tz.value" :value="tz.value">{{ tz.label }}</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            <span>自动同步</span>
+            <input type="checkbox" v-model="timeSettings.autoSync" />
+          </label>
+          <template v-if="!timeSettings.autoSync">
+            <label class="setting-row">
+              <span>自定义偏移(分)</span>
+              <input type="number" v-model.number="timeSettings.customOffset" step="1" style="width:80px" />
+            </label>
+          </template>
+        </div>
+      </div>
+
+      <!-- Storage -->
+      <div v-if="activeTab === 'storage'" class="settings-page">
+        <h3>存储使用情况</h3>
+        <div class="setting-group">
+          <div class="storage-bar-wrap">
+            <div class="storage-bar">
+              <div class="storage-fill" :style="{ width: storagePercent + '%' }"></div>
+            </div>
+            <span class="storage-text">{{ storageUsed }} / {{ storageMax }}</span>
+          </div>
+          <div class="info-grid">
+            <div class="info-item"><span class="info-label">已用空间</span><span class="info-value">{{ storageUsed }}</span></div>
+            <div class="info-item"><span class="info-label">最大容量</span><span class="info-value">{{ storageMax }}</span></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Network -->
       <div v-if="activeTab === 'network'" class="settings-page">
         <h3>网络状态</h3>
@@ -118,17 +162,20 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { displaySettings } from '../composables/useDisplaySettings.js'
+import { timeSettings } from '../composables/useTimeSettings.js'
 
-defineProps({ windowId: String })
+const props = defineProps({ windowId: String, tab: { type: String, default: '' } })
 
-const activeTab = ref('system')
+const activeTab = ref(props.tab || 'system')
 
 const tabs = [
   { id: 'system', label: '系统', icon: '🖥️' },
   { id: 'display', label: '显示', icon: '🎨' },
+  { id: 'time', label: '时间', icon: '🕐' },
   { id: 'network', label: '网络', icon: '🌐' },
+  { id: 'storage', label: '存储', icon: '💾' },
   { id: 'about', label: '关于', icon: 'ℹ️' },
 ]
 
@@ -144,6 +191,43 @@ const sysInfo = [
 ]
 
 const display = displaySettings
+
+const timezones = [
+  { value: -12, label: 'UTC-12' }, { value: -8, label: 'UTC-8 (太平洋)' },
+  { value: -5, label: 'UTC-5 (东部)' }, { value: 0, label: 'UTC+0 (伦敦)' },
+  { value: 1, label: 'UTC+1 (巴黎)' }, { value: 8, label: 'UTC+8 (北京)' },
+  { value: 9, label: 'UTC+9 (东京)' }, { value: 12, label: 'UTC+12' },
+]
+
+const currentTime = ref('')
+let timeTimer
+onMounted(() => {
+  const update = () => {
+    const now = timeSettings.autoSync ? new Date() : new Date(Date.now() + timeSettings.customOffset * 60000)
+    currentTime.value = now.toLocaleString('zh-CN', { timeZone: 'UTC', hour12: false }) 
+      + ' (UTC' + (timeSettings.timezone >= 0 ? '+' : '') + timeSettings.timezone + ')'
+  }
+  update()
+  timeTimer = setInterval(update, 1000)
+})
+onUnmounted(() => clearInterval(timeTimer))
+
+// Storage stats
+const storageUsed = computed(() => {
+  let total = 0
+  for (const key in localStorage) {
+    if (key.startsWith('yocim_')) total += localStorage[key].length * 2 // UTF-16
+  }
+  if (total < 1024) return total + ' B'
+  if (total < 1024 * 1024) return (total / 1024).toFixed(1) + ' KB'
+  return (total / (1024 * 1024)).toFixed(1) + ' MB'
+})
+const storageMax = '5 MB'
+const storagePercent = computed(() => {
+  let total = 0
+  for (const key in localStorage) if (key.startsWith('yocim_')) total += localStorage[key].length * 2
+  return Math.min(100, (total / (5 * 1024 * 1024)) * 100).toFixed(1)
+})
 
 function onWallpaperFile(e) {
   const file = e.target.files?.[0]
@@ -269,6 +353,11 @@ function onWallpaperFile(e) {
   font-family: var(--font-mono);
   font-size: 10px;
 }
+
+.storage-bar-wrap { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.storage-bar { flex: 1; height: 12px; background: var(--bg-panel2); border-radius: 6px; overflow: hidden; }
+.storage-fill { height: 100%; background: linear-gradient(90deg, var(--neon-cyan), var(--neon-magenta)); border-radius: 6px; transition: width 0.5s; }
+.storage-text { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); white-space: nowrap; }
 .network-status { display: flex; flex-direction: column; gap: 12px; }
 .net-indicator {
   display: flex;

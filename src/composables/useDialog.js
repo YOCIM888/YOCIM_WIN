@@ -13,3 +13,8 @@ export async function showConfirm(message, title = '确认') {
   if (dialogRef.value) return dialogRef.value.show({ title, message, type: 'confirm', okText: '确定' })
   return window.confirm(message)
 }
+
+export async function showPrompt(message, title = '输入', defaultValue = '') {
+  if (dialogRef.value) return dialogRef.value.show({ title, message, type: 'prompt', defaultValue })
+  return window.prompt(message, defaultValue)
+}

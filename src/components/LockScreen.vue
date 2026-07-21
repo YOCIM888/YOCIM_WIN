@@ -1,6 +1,6 @@
 <template>
   <Transition name="lockscreen">
-    <div v-if="visible" class="lockscreen" @click="unlock">
+    <div v-if="uiState.locked" class="lockscreen" @click="unlock">
       <div class="lock-time">{{ time }}</div>
       <div class="lock-date">{{ date }}</div>
       <div class="lock-hint neon-text-cyan">点击屏幕解锁</div>
@@ -14,8 +14,8 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { uiState } from '../composables/uiState.js'
 
-const visible = ref(true)
 const time = ref('')
 const date = ref('')
 let timer
@@ -27,7 +27,7 @@ function updateClock() {
 }
 
 function unlock() {
-  visible.value = false
+  uiState.locked = false
 }
 
 onMounted(() => {
@@ -41,7 +41,6 @@ onUnmounted(() => clearInterval(timer))
 .lockscreen {
   position: fixed;
   inset: 0;
-  bottom: 48px;
   z-index: 500;
   background: radial-gradient(ellipse at 50% 40%, rgba(0,20,40,0.95), #000);
   display: flex;

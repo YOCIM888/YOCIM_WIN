@@ -4,8 +4,9 @@
       <div class="dialog-box">
         <div class="dialog-title">{{ title }}</div>
         <div class="dialog-msg">{{ message }}</div>
+        <input v-if="type === 'prompt'" v-model="inputValue" class="dialog-input" @keydown.enter="onOk" ref="inputRef" />
         <div class="dialog-btns">
-          <button v-if="type === 'confirm'" class="dialog-btn cancel" @click="onCancel">取消</button>
+          <button v-if="type !== 'alert'" class="dialog-btn cancel" @click="onCancel">取消</button>
           <button class="dialog-btn ok" @click="onOk">{{ okText }}</button>
         </div>
       </div>
@@ -14,13 +15,15 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 
 const visible = ref(false)
 const title = ref('')
 const message = ref('')
-const type = ref('alert') // 'alert' | 'confirm'
+const type = ref('alert') // 'alert' | 'confirm' | 'prompt'
 const okText = ref('确定')
+const inputValue = ref('')
+const inputRef = ref(null)
 let resolvePromise = null
 
 function show(opts) {
@@ -28,18 +31,20 @@ function show(opts) {
   message.value = opts.message || ''
   type.value = opts.type || 'alert'
   okText.value = opts.okText || (type.value === 'confirm' ? '确定' : '知道了')
+  inputValue.value = opts.defaultValue || ''
   visible.value = true
+  if (opts.type === 'prompt') nextTick(() => inputRef.value?.focus())
   return new Promise(resolve => { resolvePromise = resolve })
 }
 
 function onOk() {
   visible.value = false
-  resolvePromise?.(true)
+  resolvePromise?.(type.value === 'prompt' ? inputValue.value : true)
 }
 
 function onCancel() {
   visible.value = false
-  resolvePromise?.(false)
+  resolvePromise?.(type.value === 'prompt' ? null : false)
 }
 
 defineExpose({ show })
@@ -77,7 +82,23 @@ defineExpose({ show })
   font-size: 13px;
   color: var(--text-secondary);
   line-height: 1.5;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
+}
+.dialog-input {
+  width: 100%;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border-glow);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  outline: none;
+  margin-bottom: 16px;
+}
+.dialog-input:focus {
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 8px rgba(0,240,255,0.2);
 }
 .dialog-btns {
   display: flex;

@@ -53,6 +53,9 @@
 
     <!-- Cyber Dialog -->
     <CyberDialog ref="cyberDialogRef" />
+
+    <!-- Activity Bubble -->
+    <ActivityBubble :visible="uiState.bubbleOpen" @close="uiState.bubbleOpen = false" />
   </div>
 </template>
 
@@ -84,9 +87,11 @@ import TaskManager from './components/TaskManager.vue'
 import ToastLayer from './components/ToastLayer.vue'
 import LockScreen from './components/LockScreen.vue'
 import Calculator from './components/Calculator.vue'
+import ActivityBubble from './components/ActivityBubble.vue'
 import DesktopLogo from './components/DesktopLogo.vue'
 import CyberDialog from './components/CyberDialog.vue'
 import { setDialogRef } from './composables/useDialog.js'
+import { showConfirm, showPrompt } from './composables/useDialog.js'
 
 const {
   windows,
@@ -210,8 +215,8 @@ function onIconContext(e, icon) {
           desktopRefreshKey.value++
         }
       }},
-      { label: '重命名', icon: '✏️', action: () => {
-        const newName = prompt('重命名:', icon.label)
+      { label: '重命名', icon: '✏️', action: async () => {
+        const newName = await showPrompt('输入新名称:', '重命名', icon.label)
         if (newName && newName !== icon.label && fp && fileSystem.renameItem(fp, newName)) {
           notifStore.add('桌面', `已重命名为 "${newName}"`, 'success')
           desktopRefreshKey.value++

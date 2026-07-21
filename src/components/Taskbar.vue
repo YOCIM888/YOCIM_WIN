@@ -39,11 +39,11 @@
     </div>
     <div class="taskbar-right">
       <div class="taskbar-divider"></div>
-      <button class="tray-btn" @click.stop="ui.toggleNotif" :class="{ active: ui.notifCenterOpen }" title="通知中心">
+      <button class="tray-btn" @click.stop="ui.bubbleOpen = !ui.bubbleOpen" :class="{ active: ui.bubbleOpen }" title="操作记录">
         <span class="tray-icon">💬</span>
-        <span v-if="notif.list.length" class="tray-badge">{{ notif.list.length }}</span>
+        <span v-if="activityLog.items.length" class="tray-badge">{{ activityLog.items.length }}</span>
       </button>
-      <div class="tray-clock" @click.stop="ui.toggleNotif">
+      <div class="tray-clock" @click.stop="openTimeSettings">
         <span class="clock-time">{{ time }}</span>
         <span class="clock-date">{{ date }}</span>
       </div>
@@ -56,6 +56,7 @@ import { ref, inject, onMounted, onUnmounted, computed } from 'vue'
 import { uiState } from '../composables/uiState.js'
 import { pinnedTasks } from '../composables/usePinnedTasks.js'
 import { contextMenu } from '../composables/useContextMenu.js'
+import { activityLog } from '../composables/useActivityLog.js'
 
 const wm = inject('wm')
 const notif = inject('notif')
@@ -69,6 +70,10 @@ const time = ref('')
 const date = ref('')
 const hoveredWin = ref(null)
 let clockInterval
+
+function openTimeSettings() {
+  wm.openWindow('settings', { title: '时间和日期', icon: '🕐', props: { tab: 'time' } })
+}
 
 function updateClock() {
   const now = new Date()

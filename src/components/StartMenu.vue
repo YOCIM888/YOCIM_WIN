@@ -99,6 +99,9 @@
           <button class="restart-btn" @click="doRestart">
             <span>🔄</span> 重启
           </button>
+          <button class="lock-btn" @click="doLock">
+            <span>🔒</span> 锁屏
+          </button>
         </div>
       </div>
     </div>
@@ -171,6 +174,11 @@ function doRestart() {
   ui.closeAll()
   wm.windowList.value.forEach(w => wm.closeWindow(w.id))
   notif.add('系统', '系统已重启', 'info')
+}
+
+function doLock() {
+  ui.closeAll()
+  ui.locked = true
 }
 </script>
 
@@ -371,6 +379,30 @@ function doRestart() {
   border-color: var(--neon-cyan);
   color: var(--neon-cyan);
   box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+.lock-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border-glow);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+.lock-btn:hover {
+  background: rgba(255, 215, 0, 0.08);
+  border-color: var(--neon-yellow);
+  color: var(--neon-yellow);
+  box-shadow: 0 0 15px rgba(245, 232, 56, 0.2);
 }
 
 /* Transition */

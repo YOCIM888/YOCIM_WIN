@@ -3,6 +3,8 @@ import { reactive } from 'vue'
 export const uiState = reactive({
   startMenuOpen: false,
   notifCenterOpen: false,
+  bubbleOpen: false,
+  locked: true,
   recentApps: [], // { id, label, icon, app, args }
   toggleStart() {
     this.startMenuOpen = !this.startMenuOpen

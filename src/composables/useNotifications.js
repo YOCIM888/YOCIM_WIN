@@ -1,4 +1,5 @@
 import { reactive } from 'vue'
+import { activityLog } from './useActivityLog.js'
 
 const notifications = reactive([])
 let notifId = 0
@@ -31,6 +32,8 @@ export const notifStore = reactive({
   add(title, message, type = 'info', duration = 4000) {
     const id = `notif_${Date.now()}`
     this.list.push({ id, title, message, type, time: new Date().toLocaleTimeString() })
+    // Also log to activity
+    activityLog.add('🔔', `${title}: ${message}`, type)
     if (duration > 0) {
       setTimeout(() => this.remove(id), duration)
     }
