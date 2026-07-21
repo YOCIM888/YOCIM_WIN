@@ -26,7 +26,7 @@ function draw() {
   for (let i = 0; i < 40; i++) {
     const x = (Math.sin(t * 0.3 + i * 1.7) * 0.5 + 0.5) * w
     const y = (Math.cos(t * 0.25 + i * 1.3) * 0.5 + 0.5) * h
-    const r = 1 + Math.sin(t + i) * 1.5
+    const r = Math.max(0.1, 1 + Math.sin(t + i) * 1.5)
     const alpha = 0.2 + Math.sin(t * 2 + i) * 0.2
     ctx.beginPath()
     ctx.arc(x, y, r, 0, Math.PI * 2)

@@ -7,10 +7,10 @@
       </button>
       <div class="taskbar-divider"></div>
       <button
-        v-for="win in wm.windowList"
+        v-for="win in windowList"
         :key="win.id"
         class="taskbar-item"
-        :class="{ active: wm.focusId === win.id && !win.minimized }"
+        :class="{ active: focusId === win.id && !win.minimized }"
         @click="onTaskClick(win)"
       >
         <span class="taskbar-item-icon">{{ win.icon }}</span>
@@ -32,12 +32,17 @@
 </template>
 
 <script setup>
-import { ref, inject, onMounted, onUnmounted } from 'vue'
+import { ref, inject, onMounted, onUnmounted, computed } from 'vue'
 import { uiState } from '../composables/uiState.js'
 
 const wm = inject('wm')
 const notif = inject('notif')
 const ui = uiState
+
+// Unwrap nested refs from plain object — needed because inject returns a plain
+// object and Vue's template only auto-unwraps top-level or reactive‑nested refs.
+const windowList = computed(() => wm.windowList.value ?? [])
+const focusId = computed(() => wm.focusId.value)
 
 const time = ref('')
 const date = ref('')
