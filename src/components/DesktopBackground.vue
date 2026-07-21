@@ -1,5 +1,6 @@
 <template>
   <div class="desktop-bg">
+    <img v-if="displaySettings.wallpaper === 'custom' && displaySettings.customWallpaper" :src="displaySettings.customWallpaper" class="bg-image" />
     <canvas ref="canvas" class="bg-canvas"></canvas>
     <div class="bg-overlay"></div>
     <div class="scanlines"></div>
@@ -95,6 +96,13 @@ onUnmounted(() => {
   inset: 0;
   width: 100%;
   height: 100%;
+}
+.bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .bg-overlay {
   position: absolute;

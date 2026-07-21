@@ -54,8 +54,17 @@
               <option value="grid">赛博网格</option>
               <option value="dark">纯黑</option>
               <option value="matrix">矩阵雨</option>
+              <option value="custom">自定义图片</option>
             </select>
           </label>
+          <label v-if="display.wallpaper === 'custom'" class="setting-row">
+            <span>选择图片</span>
+            <input type="file" accept="image/*" @change="onWallpaperFile" class="file-input" />
+          </label>
+          <div v-if="display.wallpaper === 'custom' && display.customWallpaper" class="wp-preview">
+            <img :src="display.customWallpaper" class="wp-thumb" />
+            <button class="wp-remove" @click="display.customWallpaper = ''; display.wallpaper = 'particles'">移除</button>
+          </div>
         </div>
       </div>
 
@@ -135,6 +144,16 @@ const sysInfo = [
 ]
 
 const display = displaySettings
+
+function onWallpaperFile(e) {
+  const file = e.target.files?.[0]
+  if (!file) return
+  const reader = new FileReader()
+  reader.onload = () => {
+    display.customWallpaper = reader.result
+  }
+  reader.readAsDataURL(file)
+}
 </script>
 
 <style scoped>
@@ -227,6 +246,29 @@ const display = displaySettings
   font-family: var(--font-mono);
 }
 .setting-val { color: var(--neon-cyan); min-width: 40px; }
+.file-input { font-size: 11px; color: var(--text-secondary); }
+.file-input::file-selector-button {
+  background: var(--bg-panel2);
+  border: 1px solid var(--border-glow);
+  color: var(--text-primary);
+  padding: 2px 8px;
+  border-radius: 3px;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  margin-right: 8px;
+}
+.wp-preview { margin-top: 8px; display: flex; align-items: center; gap: 10px; }
+.wp-thumb { width: 100px; height: 56px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border-glow); }
+.wp-remove {
+  padding: 4px 10px;
+  border: 1px solid rgba(255,50,80,0.4);
+  border-radius: 4px;
+  background: transparent;
+  color: #ff4466;
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
 .network-status { display: flex; flex-direction: column; gap: 12px; }
 .net-indicator {
   display: flex;

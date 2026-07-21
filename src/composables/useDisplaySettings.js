@@ -10,6 +10,7 @@ export const displaySettings = reactive({
   scanlines: saved?.scanlines ?? 40,
   accent: saved?.accent ?? 'cyan',
   wallpaper: saved?.wallpaper ?? 'particles',
+  customWallpaper: saved?.customWallpaper ?? '',
 })
 
 watch(() => ({ ...displaySettings }), (v) => {

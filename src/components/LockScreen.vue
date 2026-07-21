@@ -41,6 +41,7 @@ onUnmounted(() => clearInterval(timer))
 .lockscreen {
   position: fixed;
   inset: 0;
+  bottom: 48px;
   z-index: 500;
   background: radial-gradient(ellipse at 50% 40%, rgba(0,20,40,0.95), #000);
   display: flex;

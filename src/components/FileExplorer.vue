@@ -208,6 +208,9 @@ function onContext(e) {
       while (existing.has(finalName)) { finalName = `${name} (${i++})` }
       if (fileSystem.createDir(currentPath.value, finalName)) {
         notif.add('资源管理器', `已创建文件夹 "${finalName}"`, 'success')
+        refreshCounter.value++
+      } else {
+        notif.add('资源管理器', '创建文件夹失败', 'error')
       }
     }},
     { label: '新建文本文档', icon: '📝', action: () => {
@@ -216,6 +219,9 @@ function onContext(e) {
       while (existing.has(finalName)) { finalName = `新建文本文档 (${i++}).txt` }
       if (fileSystem.createFile(currentPath.value, finalName, '')) {
         notif.add('资源管理器', `已创建文件 "${finalName}"`, 'success')
+        refreshCounter.value++
+      } else {
+        notif.add('资源管理器', '创建文件失败', 'error')
       }
     }},
     { type: 'separator' },

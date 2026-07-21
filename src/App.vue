@@ -3,6 +3,9 @@
     <!-- Desktop Background -->
     <DesktopBackground />
 
+    <!-- Desktop Logo -->
+    <DesktopLogo />
+
     <!-- Desktop Icons -->
     <div class="desktop-icons" :key="desktopRefreshKey">
       <DesktopIcon
@@ -78,6 +81,7 @@ import TaskManager from './components/TaskManager.vue'
 import ToastLayer from './components/ToastLayer.vue'
 import LockScreen from './components/LockScreen.vue'
 import Calculator from './components/Calculator.vue'
+import DesktopLogo from './components/DesktopLogo.vue'
 
 const {
   windows,
@@ -135,23 +139,27 @@ function onDesktopContext(e) {
     { label: '刷新', icon: '🔄', action: () => { desktopRefreshKey.value++; notifStore.add('桌面', '桌面已刷新', 'info') } },
     { label: '新建文件夹', icon: '📁', action: () => {
       const name = '新建文件夹'
-      let finalName = name
-      let i = 1
+      let finalName = name, i = 1
       const items = fileSystem.getChildren('/Users/Yocim/Desktop')
       const existing = new Set(items.map(it => it.name))
       while (existing.has(finalName)) { finalName = `${name} (${i++})` }
       if (fileSystem.createDir('/Users/Yocim/Desktop', finalName)) {
         notifStore.add('桌面', `已创建文件夹 "${finalName}"`, 'success')
+        desktopRefreshKey.value++
+      } else {
+        notifStore.add('桌面', '创建文件夹失败', 'error')
       }
     }},
     { label: '新建文本文档', icon: '📝', action: () => {
-      let finalName = '新建文本文档.txt'
-      let i = 1
+      let finalName = '新建文本文档.txt', i = 1
       const items = fileSystem.getChildren('/Users/Yocim/Desktop')
       const existing = new Set(items.map(it => it.name))
       while (existing.has(finalName)) { finalName = `新建文本文档 (${i++}).txt` }
       if (fileSystem.createFile('/Users/Yocim/Desktop', finalName, '')) {
         notifStore.add('桌面', `已创建文件 "${finalName}"`, 'success')
+        desktopRefreshKey.value++
+      } else {
+        notifStore.add('桌面', '创建文件失败', 'error')
       }
     }},
     { type: 'separator' },
@@ -193,15 +201,15 @@ function applyDisplaySettings(s) {
   root.style.setProperty('--neon-opacity', (s.neonBrightness / 100).toFixed(2))
   root.style.setProperty('--scanline-opacity', (s.scanlines / 100).toFixed(2))
   const accentMap = {
-    cyan: { r: 0, g: 240, b: 255 },
-    magenta: { r: 255, g: 0, b: 255 },
-    green: { r: 57, g: 255, b: 20 },
-    orange: { r: 255, g: 107, b: 53 },
+    cyan: '#00f0ff',
+    magenta: '#ff00ff',
+    green: '#39ff14',
+    orange: '#ff6b35',
   }
-  const c = accentMap[s.accent] || accentMap.cyan
-  root.style.setProperty('--neon-r', c.r)
-  root.style.setProperty('--neon-g', c.g)
-  root.style.setProperty('--neon-b', c.b)
+  const color = accentMap[s.accent] || accentMap.cyan
+  // Override primary accent color — affects borders, glows, highlights
+  root.style.setProperty('--neon-cyan', color)
+  root.style.setProperty('--neon-blue', color)
 }
 applyDisplaySettings(displaySettings)
 watch(() => ({ ...displaySettings }), applyDisplaySettings, { deep: true })
