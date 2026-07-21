@@ -14,7 +14,7 @@ const desktopIcons = reactive([
   { id: 'recycle', label: '回收站', icon: '🗑️', app: 'recycle', args: {} },
   { id: 'terminal', label: '终端', icon: '⬛', app: 'terminal', args: {} },
   { id: 'settings', label: '设置', icon: '⚙️', app: 'settings', args: {} },
-  { id: 'files', label: '文档', icon: '📁', app: 'explorer', args: { path: '/Documents' } },
+  { id: 'files', label: '文档', icon: '📁', app: 'explorer', args: { path: '/Users/Yocim/Documents' } },
   { id: 'notepad', label: '记事本', icon: '📝', app: 'notepad', args: {} },
 ])
 

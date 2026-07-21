@@ -91,16 +91,16 @@ const renameInputEl = ref(null)
 const items = computed(() => {
   void refreshCounter.value
   const list = fileSystem.getChildren(currentPath.value)
-  if (sortBy.value === 'type') {
-    return [...list].sort((a, b) => {
-      if (a.type !== b.type) return a.type === 'dir' ? -1 : 1
-      return a.name.localeCompare(b.name)
-    })
-  }
-  return [...list].sort((a, b) => {
+  const sorted = [...list].sort((a, b) => {
+    // dirs always come first
     if (a.type !== b.type) return a.type === 'dir' ? -1 : 1
     return a.name.localeCompare(b.name)
   })
+  if (sortBy.value === 'type') {
+    return sorted
+  }
+  // sort by name: just use localeCompare (dirs still first from base sort)
+  return sorted
 })
 
 const pathParts = computed(() => {

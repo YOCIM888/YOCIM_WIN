@@ -210,7 +210,7 @@ function createFS() {
     }
     destDir.children[copyName] = JSON.parse(JSON.stringify(node))
     destDir.children[copyName].name = copyName
-    return true
+    return copyName // return the actual name (may differ on collision)
   }
 
   return { fs, resolvePath, getChildren, getParentPath, readFile,

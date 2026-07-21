@@ -73,8 +73,10 @@ const lines = computed(() => text.value.split('\n').length)
 const chars = computed(() => text.value.length)
 
 // push undo on each text change
+let isUndoing = false
 watch(text, (newVal, oldVal) => {
-  if (oldVal !== undefined) {
+  if (isUndoing) return
+  if (oldVal !== undefined && newVal !== oldVal) {
     undoStack.value.push(oldVal)
     if (undoStack.value.length > 50) undoStack.value.shift()
   }
@@ -82,7 +84,9 @@ watch(text, (newVal, oldVal) => {
 
 function undo() {
   if (undoStack.value.length > 0) {
+    isUndoing = true
     text.value = undoStack.value.pop()
+    nextTick(() => { isUndoing = false })
   }
   menuOpen.value = null
 }
@@ -142,8 +146,10 @@ const closeMenu = () => { menuOpen.value = null }
 document.addEventListener('click', closeMenu)
 onUnmounted(() => document.removeEventListener('click', closeMenu))
 
-// Keyboard shortcuts
+// Keyboard shortcuts — only fire when this notepad is in a focused window
 function onKeydown(e) {
+  // Check if this editor is in the active document
+  if (document.activeElement !== editorEl.value) return
   if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveFile(); return }
   if (e.ctrlKey && e.key === 'n') { e.preventDefault(); newFile(); return }
   if (e.ctrlKey && e.key === 'o') { e.preventDefault(); openFromFS(); return }

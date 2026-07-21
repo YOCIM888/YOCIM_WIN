@@ -43,7 +43,7 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from 'vue'
+import { computed, inject } from 'vue'
 import { contextMenu } from '../composables/useContextMenu.js'
 
 const props = defineProps({
@@ -108,13 +108,11 @@ function startDrag(e) {
     }
     // Left edge → left half
     if (win.x < threshold) {
-      win.prevBounds = { x: win.x, y: win.y, width: win.width, height: win.height }
       win.x = 0; win.y = 0; win.width = sw / 2; win.height = sh
       return
     }
     // Right edge → right half
     if (win.x + win.width > sw - threshold) {
-      win.prevBounds = { x: win.x, y: win.y, width: win.width, height: win.height }
       win.x = sw / 2; win.y = 0; win.width = sw / 2; win.height = sh
       return
     }

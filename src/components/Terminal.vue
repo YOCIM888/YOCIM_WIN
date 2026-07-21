@@ -186,11 +186,10 @@ const commands = {
       if (fileSystem.renameItem(srcPath, dstName)) return ''
     }
     // cross-directory: copy then delete
-    if (fileSystem.copyItem(srcPath, dstParent)) {
-      const copiedName = fileSystem.resolvePath(srcPath).name
-      // rename copied to target name
-      const copiedPath = dstParent === '/' ? '/' + copiedName : dstParent + '/' + copiedName
-      if (copiedName !== dstName) fileSystem.renameItem(copiedPath, dstName)
+    const copyName = fileSystem.copyItem(srcPath, dstParent)
+    if (copyName) {
+      const copiedPath = dstParent === '/' ? '/' + copyName : dstParent + '/' + copyName
+      if (copyName !== dstName) fileSystem.renameItem(copiedPath, dstName)
       fileSystem.deleteItem(srcPath)
       return ''
     }
