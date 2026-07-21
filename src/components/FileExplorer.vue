@@ -33,7 +33,7 @@
         :class="{ selected: selectedItem === item.key }"
         @click="selectItem(item)"
         @dblclick="openItem(item)"
-        @contextmenu.prevent.stop="onItemContext(item)"
+        @contextmenu.prevent.stop="onItemContext($event, item)"
       >
         <span class="item-icon">{{ item.type === 'dir' ? '📁' : getFileIcon(item.name) }}</span>
         <span class="item-name">{{ item.name }}</span>
@@ -54,6 +54,7 @@
 <script setup>
 import { ref, computed, inject } from 'vue'
 import { fileSystem } from '../composables/useFileSystem.js'
+import { recycleBin } from '../composables/useRecycleBin.js'
 import { contextMenu } from '../composables/useContextMenu.js'
 
 const props = defineProps({
@@ -118,14 +119,12 @@ function openItem(item) {
   if (item.type === 'dir') {
     navigateTo(currentPath.value === '/' ? `/${item.key}` : `${currentPath.value}/${item.key}`)
   } else {
-    // Open file in notepad
-    const content = fileSystem.readFile(
-      currentPath.value === '/' ? `/${item.key}` : `${currentPath.value}/${item.key}`
-    )
+    const fp = currentPath.value === '/' ? `/${item.key}` : `${currentPath.value}/${item.key}`
+    const content = fileSystem.readFile(fp)
     wm.openWindow('notepad', {
       title: item.name,
       icon: '📝',
-      props: { filename: item.name, content }
+      props: { filename: item.name, content, filePath: fp }
     })
   }
 }
@@ -143,24 +142,63 @@ function getFileIcon(name) {
   return map[ext] || '📄'
 }
 
+function fullPath(itemKey) {
+  return currentPath.value === '/' ? `/${itemKey}` : `${currentPath.value}/${itemKey}`
+}
+
 function onContext(e) {
   contextMenu.show(e.clientX, e.clientY, [
     { label: '刷新', icon: '🔄', action: () => {} },
-    { label: '新建文件夹', icon: '📁', action: () => notif.add('资源管理器', '新建文件夹功能开发中', 'info') },
-    { label: '新建文本文档', icon: '📝', action: () => notif.add('资源管理器', '新建文档功能开发中', 'info') },
+    { label: '新建文件夹', icon: '📁', action: () => {
+      let name = '新建文件夹'; let finalName = name; let i = 1
+      const existing = new Set(items.value.map(it => it.name))
+      while (existing.has(finalName)) { finalName = `${name} (${i++})` }
+      if (fileSystem.createDir(currentPath.value, finalName)) {
+        notif.add('资源管理器', `已创建文件夹 "${finalName}"`, 'success')
+      }
+    }},
+    { label: '新建文本文档', icon: '📝', action: () => {
+      let finalName = '新建文本文档.txt'; let i = 1
+      const existing = new Set(items.value.map(it => it.name))
+      while (existing.has(finalName)) { finalName = `新建文本文档 (${i++}).txt` }
+      if (fileSystem.createFile(currentPath.value, finalName, '')) {
+        notif.add('资源管理器', `已创建文件 "${finalName}"`, 'success')
+      }
+    }},
     { type: 'separator' },
     { label: '在终端中打开', icon: '⬛', action: () => wm.openWindow('terminal', { title: '终端', icon: '⬛' }) },
     { label: '属性', icon: '📋', action: () => notif.add('属性', `路径: ${currentPath.value}`, 'info') },
   ])
 }
 
-function onItemContext(item) {
+function onItemContext(e, item) {
   contextMenu.show(e.clientX, e.clientY, [
     { label: `打开 ${item.name}`, icon: '🖱️', action: () => openItem(item) },
     { type: 'separator' },
-    { label: '复制', icon: '📋', action: () => notif.add('复制', `${item.name} 已复制`, 'success') },
-    { label: '删除', icon: '🗑️', action: () => notif.add('删除', `${item.name} 已删除`, 'warning') },
-    { label: '重命名', icon: '✏️', action: () => notif.add('重命名', '功能开发中', 'info') },
+    { label: '复制', icon: '📋', action: () => {
+      const src = fullPath(item.key)
+      if (fileSystem.copyItem(src, currentPath.value)) {
+        notif.add('复制', `"${item.name}" 已复制`, 'success')
+      }
+    }},
+    { label: '删除', icon: '🗑️', action: () => {
+      const src = fullPath(item.key)
+      if (recycleBin.add(src)) {
+        notif.add('删除', `"${item.name}" 已移至回收站`, 'warning')
+      }
+    }},
+    { label: '重命名', icon: '✏️', action: () => {
+      const newName = prompt('重命名:', item.name)
+      if (newName && newName !== item.name) {
+        const src = fullPath(item.key)
+        if (fileSystem.renameItem(src, newName)) {
+          notif.add('重命名', `已重命名为 "${newName}"`, 'success')
+          selectedItem.value = null
+        } else {
+          notif.add('重命名', '重命名失败（名称重复或无效）', 'error')
+        }
+      }
+    }},
     { type: 'separator' },
     { label: '属性', icon: '📋', action: () => notif.add('属性', `${item.name} - 类型: ${item.type === 'dir' ? '文件夹' : '文件'}`, 'info') },
   ])

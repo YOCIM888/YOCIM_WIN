@@ -28,29 +28,27 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { inject } from 'vue'
+import { recycleBin } from '../composables/useRecycleBin.js'
 
 defineProps({ windowId: String })
 const notif = inject('notif')
 
-const items = ref([
-  { id: 1, name: '旧的日志.txt', icon: '📄', deletedAt: '2025/6/15' },
-  { id: 2, name: '临时文件.tmp', icon: '📄', deletedAt: '2025/7/1' },
-  { id: 3, name: '截图_001.png', icon: '🖼️', deletedAt: '2025/7/10' },
-])
+const items = recycleBin.items
 
 function restore(id) {
-  items.value = items.value.filter(i => i.id !== id)
-  notif.add('回收站', '项目已还原', 'success')
+  if (recycleBin.restore(id)) {
+    notif.add('回收站', '项目已还原', 'success')
+  }
 }
 
 function restoreAll() {
-  items.value = []
+  recycleBin.restoreAll()
   notif.add('回收站', '所有项目已还原', 'success')
 }
 
 function emptyBin() {
-  items.value = []
+  recycleBin.empty()
   notif.add('回收站', '回收站已清空', 'warning')
 }
 </script>

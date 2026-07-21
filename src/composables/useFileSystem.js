@@ -118,7 +118,98 @@ function createFS() {
     return node.content || ''
   }
 
-  return { fs, resolvePath, getChildren, getParentPath, readFile }
+  // ── Write operations ──
+
+  function createFile(parentPath, name, content = '') {
+    const dir = resolvePath(parentPath)
+    if (!dir || dir.type !== 'dir') return false
+    if (!dir.children) dir.children = {}
+    if (dir.children[name]) return false // already exists
+    dir.children[name] = {
+      type: 'file',
+      name,
+      size: `${content.length} B`,
+      content,
+    }
+    return true
+  }
+
+  function createDir(parentPath, name) {
+    const dir = resolvePath(parentPath)
+    if (!dir || dir.type !== 'dir') return false
+    if (!dir.children) dir.children = {}
+    if (dir.children[name]) return false
+    dir.children[name] = {
+      type: 'dir',
+      name,
+      children: {},
+    }
+    return true
+  }
+
+  function deleteItem(path) {
+    if (path === '/') return null
+    const parentPath = getParentPath(path)
+    const parent = resolvePath(parentPath)
+    if (!parent || parent.type !== 'dir' || !parent.children) return null
+    const name = path.split('/').pop()
+    const removed = parent.children[name]
+    if (!removed) return null
+    delete parent.children[name]
+    return removed // return for recycle bin
+  }
+
+  function renameItem(path, newName) {
+    const node = resolvePath(path)
+    if (!node || path === '/') return false
+    const parentPath = getParentPath(path)
+    const parent = resolvePath(parentPath)
+    if (!parent || parent.type !== 'dir' || !parent.children) return false
+    const oldName = path.split('/').pop()
+    if (parent.children[newName]) return false // target exists
+    parent.children[newName] = node
+    node.name = newName
+    delete parent.children[oldName]
+    return true
+  }
+
+  function writeFile(path, content) {
+    const node = resolvePath(path)
+    if (!node || node.type !== 'file') return false
+    node.content = content
+    node.size = `${content.length} B`
+    return true
+  }
+
+  // copy a file from srcPath into destDirPath
+  function copyItem(srcPath, destDirPath) {
+    const node = resolvePath(srcPath)
+    if (!node) return false
+    const destDir = resolvePath(destDirPath)
+    if (!destDir || destDir.type !== 'dir') return false
+    if (!destDir.children) destDir.children = {}
+    const name = srcPath.split('/').pop()
+    const baseName = name
+    let copyName = baseName
+    let attempt = 1
+    // avoid name collision
+    while (destDir.children[copyName]) {
+      const dot = baseName.lastIndexOf('.')
+      if (dot > -1) {
+        copyName = baseName.slice(0, dot) + ` - 副本` + baseName.slice(dot)
+      } else {
+        copyName = baseName + ` - 副本`
+      }
+      attempt++
+      if (attempt > 20) break
+    }
+    destDir.children[copyName] = JSON.parse(JSON.stringify(node))
+    destDir.children[copyName].name = copyName
+    return true
+  }
+
+  return { fs, resolvePath, getChildren, getParentPath, readFile,
+           createFile, createDir, deleteItem, renameItem, writeFile, copyItem }
 }
 
 export const fileSystem = createFS()

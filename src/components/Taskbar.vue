@@ -63,7 +63,7 @@ onUnmounted(() => clearInterval(clockInterval))
 function onTaskClick(win) {
   if (win.minimized) {
     wm.restoreWindow(win.id)
-  } else if (wm.focusId === win.id) {
+  } else if (focusId.value === win.id) {
     wm.minimizeWindow(win.id)
   } else {
     wm.focusWindow(win.id)

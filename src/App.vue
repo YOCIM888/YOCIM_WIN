@@ -44,11 +44,14 @@
 </template>
 
 <script setup>
-import { provide } from 'vue'
+import { provide, watch } from 'vue'
 import { useWindowManager } from './composables/useWindowManager.js'
 import { notifStore } from './composables/useNotifications.js'
 import { contextMenu } from './composables/useContextMenu.js'
 import { uiState } from './composables/uiState.js'
+import { displaySettings } from './composables/useDisplaySettings.js'
+import { fileSystem } from './composables/useFileSystem.js'
+import { recycleBin } from './composables/useRecycleBin.js'
 import { setupKeyboardShortcuts } from './composables/useKeyboard.js'
 import DesktopBackground from './components/DesktopBackground.vue'
 import DesktopIcon from './components/DesktopIcon.vue'
@@ -109,8 +112,27 @@ function onDesktopClick() {
 function onDesktopContext(e) {
   contextMenu.show(e.clientX, e.clientY, [
     { label: '刷新', icon: '🔄', action: () => notifStore.add('桌面', '桌面已刷新', 'info') },
-    { label: '新建文件夹', icon: '📁', action: () => notifStore.add('桌面', '新建文件夹功能', 'info') },
-    { label: '新建文本文档', icon: '📝', action: () => notifStore.add('桌面', '新建文本文档功能', 'info') },
+    { label: '新建文件夹', icon: '📁', action: () => {
+      const name = '新建文件夹'
+      let finalName = name
+      let i = 1
+      const items = fileSystem.getChildren('/Users/Yocim/Desktop')
+      const existing = new Set(items.map(it => it.name))
+      while (existing.has(finalName)) { finalName = `${name} (${i++})` }
+      if (fileSystem.createDir('/Users/Yocim/Desktop', finalName)) {
+        notifStore.add('桌面', `已创建文件夹 "${finalName}"`, 'success')
+      }
+    }},
+    { label: '新建文本文档', icon: '📝', action: () => {
+      let finalName = '新建文本文档.txt'
+      let i = 1
+      const items = fileSystem.getChildren('/Users/Yocim/Desktop')
+      const existing = new Set(items.map(it => it.name))
+      while (existing.has(finalName)) { finalName = `新建文本文档 (${i++}).txt` }
+      if (fileSystem.createFile('/Users/Yocim/Desktop', finalName, '')) {
+        notifStore.add('桌面', `已创建文件 "${finalName}"`, 'success')
+      }
+    }},
     { type: 'separator' },
     { label: '显示设置', icon: '⚙️', action: () => openWindow('settings', { title: '设置', icon: '⚙️' }) },
     { label: '个性化', icon: '🎨', action: () => notifStore.add('桌面', '个性化设置', 'info') },
@@ -139,6 +161,25 @@ const wmProvided = {
 provide('wm', wmProvided)
 provide('notif', notifStore)
 setupKeyboardShortcuts(wmProvided)
+
+// Sync display settings to CSS custom properties
+function applyDisplaySettings(s) {
+  const root = document.documentElement
+  root.style.setProperty('--neon-opacity', (s.neonBrightness / 100).toFixed(2))
+  root.style.setProperty('--scanline-opacity', (s.scanlines / 100).toFixed(2))
+  const accentMap = {
+    cyan: { r: 0, g: 240, b: 255 },
+    magenta: { r: 255, g: 0, b: 255 },
+    green: { r: 57, g: 255, b: 20 },
+    orange: { r: 255, g: 107, b: 53 },
+  }
+  const c = accentMap[s.accent] || accentMap.cyan
+  root.style.setProperty('--neon-r', c.r)
+  root.style.setProperty('--neon-g', c.g)
+  root.style.setProperty('--neon-b', c.b)
+}
+applyDisplaySettings(displaySettings)
+watch(() => ({ ...displaySettings }), applyDisplaySettings, { deep: true })
 </script>
 
 <style scoped>

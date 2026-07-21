@@ -100,7 +100,8 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
+import { displaySettings } from '../composables/useDisplaySettings.js'
 
 defineProps({ windowId: String })
 
@@ -124,11 +125,7 @@ const sysInfo = [
   { label: '桌面环境', value: 'NEON Desktop' },
 ]
 
-const display = reactive({
-  neonBrightness: 80,
-  scanlines: 40,
-  accent: 'cyan',
-})
+const display = displaySettings
 </script>
 
 <style scoped>

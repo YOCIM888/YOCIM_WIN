@@ -18,7 +18,7 @@
       </div>
       <div class="term-input-line">
         <span class="term-prompt">
-          <span class="prompt-user neon-text-green">yocim@cyber</span>:<span class="prompt-path neon-text-cyan">{{ cwd }}</span>$
+          <span class="prompt-user neon-text-green">yocim@cyber</span>:<span class="prompt-path neon-text-cyan">{{ cwdDisplay }}</span>$
         </span>
         <input
           ref="inputEl"
@@ -36,7 +36,8 @@
 </template>
 
 <script setup>
-import { ref, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted } from 'vue'
+import { fileSystem } from '../composables/useFileSystem.js'
 
 const props = defineProps({
   windowId: String,
@@ -48,7 +49,27 @@ const inputEl = ref(null)
 const outputEl = ref(null)
 const cmdHistory = ref([])
 const cmdIdx = ref(-1)
-const cwd = ref('~')
+const cwdFS = ref('/Users/Yocim') // real filesystem path
+const HOME = '/Users/Yocim'
+
+// display path: replace HOME with ~
+function displayPath(p) {
+  if (p === HOME) return '~'
+  if (p.startsWith(HOME + '/')) return '~' + p.slice(HOME.length)
+  return p
+}
+
+// resolve terminal path to filesystem path
+function toFSPath(p) {
+  if (!p || p === '~') return HOME
+  if (p.startsWith('~/')) return HOME + p.slice(1)
+  if (p.startsWith('/')) return p
+  // relative path
+  if (cwdFS.value === '/') return '/' + p
+  return cwdFS.value + '/' + p
+}
+
+const cwdDisplay = computed(() => displayPath(cwdFS.value))
 
 const commands = {
   help() {
@@ -84,24 +105,32 @@ const commands = {
     return 'yocim'
   },
   pwd() {
-    return '/home/yocim'
+    return displayPath(cwdFS.value)
   },
   ls() {
-    return 'Documents  Downloads  Pictures  Music  Desktop\nproject_notes.txt  README.txt  secret.enc'
+    const items = fileSystem.getChildren(cwdFS.value)
+    if (items.length === 0) return '(空)'
+    const lines = []
+    for (const item of items) {
+      lines.push(item.type === 'dir' ? `${item.name}/` : item.name)
+    }
+    return lines.join('  ')
   },
   dir() { return this.ls() },
   cd(dir) {
-    if (!dir || dir === '~') { cwd.value = '~'; return '' }
-    cwd.value = dir
+    if (!dir || dir === '~') { cwdFS.value = HOME; return '' }
+    const target = toFSPath(dir)
+    const node = fileSystem.resolvePath(target)
+    if (!node || node.type !== 'dir') return `cd: ${dir}: 没有那个目录`
+    cwdFS.value = target
     return ''
   },
   cat(file) {
     if (!file) return '用法: cat <文件>'
-    const files = {
-      'README.txt': '欢迎使用 YOCIM_STAT_WIN\n赛博朋克风格操作系统模拟器\n版本 1.0.0',
-      'project_notes.txt': '> 项目代号: NEON_CITY\n> 状态: 活跃\n> 加密等级: 最高',
-    }
-    return files[file] || `cat: ${file}: 没有那个文件`
+    const target = toFSPath(file)
+    const content = fileSystem.readFile(target)
+    if (content === null) return `cat: ${file}: 没有那个文件`
+    return content
   },
   sysinfo() {
     return [

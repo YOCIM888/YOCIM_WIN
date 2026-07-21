@@ -91,9 +91,10 @@ onUnmounted(() => {
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.06) 2px,
-    rgba(0, 0, 0, 0.06) 4px
+    rgba(0, 0, 0, 0.15) 2px,
+    rgba(0, 0, 0, 0.15) 4px
   );
+  opacity: var(--scanline-opacity, 0.4);
   pointer-events: none;
 }
 .bg-grid {
@@ -103,6 +104,7 @@ onUnmounted(() => {
     linear-gradient(rgba(0, 240, 255, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
   background-size: 60px 60px;
+  opacity: var(--neon-opacity, 0.8);
   pointer-events: none;
 }
 .bg-vignette {
