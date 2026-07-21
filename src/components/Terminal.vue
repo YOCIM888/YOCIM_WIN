@@ -59,14 +59,19 @@ function displayPath(p) {
   return p
 }
 
-// resolve terminal path to filesystem path
+// resolve terminal path to filesystem path (with .. normalization)
 function toFSPath(p) {
   if (!p || p === '~') return HOME
-  if (p.startsWith('~/')) return HOME + p.slice(1)
-  if (p.startsWith('/')) return p
-  // relative path
-  if (cwdFS.value === '/') return '/' + p
-  return cwdFS.value + '/' + p
+  if (p.startsWith('~/')) p = HOME + p.slice(1)
+  else if (!p.startsWith('/')) p = cwdFS.value === '/' ? '/' + p : cwdFS.value + '/' + p
+  // normalize .. segments
+  const parts = p.split('/').filter(Boolean)
+  const resolved = []
+  for (const part of parts) {
+    if (part === '..') resolved.pop()
+    else if (part !== '.') resolved.push(part)
+  }
+  return '/' + resolved.join('/')
 }
 
 const cwdDisplay = computed(() => displayPath(cwdFS.value))

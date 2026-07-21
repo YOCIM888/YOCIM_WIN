@@ -196,9 +196,9 @@ function createFS() {
     while (destDir.children[copyName]) {
       const dot = baseName.lastIndexOf('.')
       if (dot > -1) {
-        copyName = baseName.slice(0, dot) + ` - 副本` + baseName.slice(dot)
+        copyName = baseName.slice(0, dot) + ` - 副本${attempt}` + baseName.slice(dot)
       } else {
-        copyName = baseName + ` - 副本`
+        copyName = baseName + ` - 副本${attempt}`
       }
       attempt++
       if (attempt > 20) break

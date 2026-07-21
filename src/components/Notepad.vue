@@ -36,18 +36,19 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, watch, onUnmounted } from 'vue'
 import { fileSystem } from '../composables/useFileSystem.js'
 
 const props = defineProps({
   windowId: String,
   filename: { type: String, default: '' },
   content: { type: String, default: '' },
-  filePath: { type: String, default: '' }, // filesystem path if opened from explorer
+  filePath: { type: String, default: '' },
 })
 
 const notif = inject('notif')
 const text = ref(props.content || '')
+const currentFilePath = ref(props.filePath || '') // mutable local path
 const editorEl = ref(null)
 const menuOpen = ref(null)
 const undoStack = ref([])
@@ -55,10 +56,13 @@ const undoStack = ref([])
 const lines = computed(() => text.value.split('\n').length)
 const chars = computed(() => text.value.length)
 
-function pushUndo() {
-  undoStack.value.push(text.value)
-  if (undoStack.value.length > 50) undoStack.value.shift()
-}
+// push undo on each text change
+watch(text, (newVal, oldVal) => {
+  if (oldVal !== undefined) {
+    undoStack.value.push(oldVal)
+    if (undoStack.value.length > 50) undoStack.value.shift()
+  }
+})
 
 function undo() {
   if (undoStack.value.length > 0) {
@@ -74,21 +78,25 @@ function selectAll() {
 
 function newFile() {
   text.value = ''
+  currentFilePath.value = ''
+  undoStack.value = []
   menuOpen.value = null
 }
 
 function saveFile() {
-  if (props.filePath) {
-    if (fileSystem.writeFile(props.filePath, text.value)) {
-      notif.add('记事本', `已保存 "${props.filename || props.filePath}"`, 'success')
+  if (currentFilePath.value) {
+    if (fileSystem.writeFile(currentFilePath.value, text.value)) {
+      notif.add('记事本', `已保存 "${props.filename || currentFilePath.value}"`, 'success')
     } else {
       notif.add('记事本', '保存失败', 'error')
     }
   } else {
     const name = prompt('保存为文件名:', props.filename || '未命名.txt')
     if (name) {
+      const newPath = '/Users/Yocim/Documents/' + name
       if (fileSystem.createFile('/Users/Yocim/Documents', name, text.value)) {
-        notif.add('记事本', `已保存到 /Users/Yocim/Documents/${name}`, 'success')
+        currentFilePath.value = newPath
+        notif.add('记事本', `已保存到 ${newPath}`, 'success')
       } else {
         notif.add('记事本', '保存失败（文件已存在？）', 'error')
       }
@@ -103,6 +111,8 @@ function openFromFS() {
     const content = fileSystem.readFile(path)
     if (content !== null) {
       text.value = content
+      currentFilePath.value = path
+      undoStack.value = []
       notif.add('记事本', `已打开 ${path}`, 'success')
     } else {
       notif.add('记事本', `无法打开 ${path}`, 'error')
@@ -111,8 +121,10 @@ function openFromFS() {
   menuOpen.value = null
 }
 
-// Close dropdown when clicking elsewhere
-document.addEventListener('click', () => { menuOpen.value = null })
+// Close dropdown when clicking elsewhere (with cleanup)
+const closeMenu = () => { menuOpen.value = null }
+document.addEventListener('click', closeMenu)
+onUnmounted(() => document.removeEventListener('click', closeMenu))
 </script>
 
 <style scoped>
