@@ -71,11 +71,11 @@ const pinnedApps = [
 ]
 
 const allApps = [
-  { id: 'taskmgr', label: '任务管理器', icon: '📊', app: 'settings', args: {} },
+  { id: 'taskmgr', label: '任务管理器', icon: '📊', app: 'taskmgr', args: {} },
   { id: 'cmd', label: '命令提示符', icon: '▷', app: 'terminal', args: {} },
-  { id: 'paint', label: '画图', icon: '🎨', app: 'notepad', args: {} },
-  { id: 'calc', label: '计算器', icon: '🔢', app: 'notepad', args: {} },
-  { id: 'network', label: '网络中心', icon: '🌐', app: 'settings', args: {} },
+  { id: 'paint', label: '画图', icon: '🎨', app: 'placeholder', args: { title: '画图', icon: '🎨', description: '赛博朋克风格绘图工具即将上线。' } },
+  { id: 'calc', label: '计算器', icon: '🔢', app: 'placeholder', args: { title: '计算器', icon: '🔢', description: '支持炫酷霓虹界面的科学计算器。' } },
+  { id: 'network', label: '网络中心', icon: '🌐', app: 'placeholder', args: { title: '网络中心', icon: '🌐', description: '网络配置和诊断工具正在开发中。' } },
 ]
 
 function launchApp(app) {

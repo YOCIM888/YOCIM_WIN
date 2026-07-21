@@ -52,6 +52,7 @@ import { uiState } from './composables/uiState.js'
 import { displaySettings } from './composables/useDisplaySettings.js'
 import { fileSystem } from './composables/useFileSystem.js'
 import { recycleBin } from './composables/useRecycleBin.js'
+import { togglePinned, isPinned } from './composables/usePinnedTasks.js'
 import { setupKeyboardShortcuts } from './composables/useKeyboard.js'
 import DesktopBackground from './components/DesktopBackground.vue'
 import DesktopIcon from './components/DesktopIcon.vue'
@@ -65,6 +66,8 @@ import Terminal from './components/Terminal.vue'
 import Settings from './components/Settings.vue'
 import Notepad from './components/Notepad.vue'
 import RecycleBin from './components/RecycleBin.vue'
+import PlaceholderApp from './components/PlaceholderApp.vue'
+import TaskManager from './components/TaskManager.vue'
 
 const {
   windows,
@@ -91,6 +94,8 @@ const appComponents = {
   settings: Settings,
   notepad: Notepad,
   recycle: RecycleBin,
+  placeholder: PlaceholderApp,
+  taskmgr: TaskManager,
 }
 
 function getAppComponent(app) {
@@ -146,7 +151,10 @@ function onIconContext(e, icon) {
     { label: `打开 ${icon.label}`, icon: '🖱️', action: () => openApp(icon) },
     { type: 'separator' },
     { label: '以管理员身份运行', icon: '🛡️', action: () => openApp(icon) },
-    { label: '固定到任务栏', icon: '📌', action: () => notifStore.add('桌面', `${icon.label} 已固定到任务栏`, 'success') },
+    { label: isPinned(icon.id) ? '从任务栏取消固定' : '固定到任务栏', icon: '📌', action: () => {
+      const pinned = togglePinned({ id: icon.id, label: icon.label, icon: icon.icon, app: icon.app, args: icon.args || {} })
+      notifStore.add('任务栏', pinned ? `${icon.label} 已固定` : `${icon.label} 已取消固定`, 'success')
+    } },
     { type: 'separator' },
     { label: '属性', icon: '📋', action: () => notifStore.add('属性', `${icon.label} 属性`, 'info') },
   ])

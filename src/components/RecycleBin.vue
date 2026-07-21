@@ -48,6 +48,8 @@ function restoreAll() {
 }
 
 function emptyBin() {
+  if (items.length === 0) return
+  if (!window.confirm(`确定要永久删除回收站中的 ${items.length} 个项目吗？此操作不可恢复。`)) return
   recycleBin.empty()
   notif.add('回收站', '回收站已清空', 'warning')
 }

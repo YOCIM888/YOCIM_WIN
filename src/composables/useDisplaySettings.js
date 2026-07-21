@@ -1,7 +1,16 @@
-import { reactive } from 'vue'
+import { reactive, watch } from 'vue'
+
+const saved = (() => {
+  try { return JSON.parse(localStorage.getItem('yocim_display') || 'null') }
+  catch { return null }
+})()
 
 export const displaySettings = reactive({
-  neonBrightness: 80,
-  scanlines: 40,
-  accent: 'cyan',
+  neonBrightness: saved?.neonBrightness ?? 80,
+  scanlines: saved?.scanlines ?? 40,
+  accent: saved?.accent ?? 'cyan',
 })
+
+watch(() => ({ ...displaySettings }), (v) => {
+  localStorage.setItem('yocim_display', JSON.stringify(v))
+}, { deep: true })

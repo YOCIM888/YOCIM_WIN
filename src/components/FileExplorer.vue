@@ -69,8 +69,12 @@ const currentPath = ref(props.path || '/')
 const selectedItem = ref(null)
 const history = ref([currentPath.value])
 const historyIdx = ref(0)
+const refreshCounter = ref(0)
 
-const items = computed(() => fileSystem.getChildren(currentPath.value))
+const items = computed(() => {
+  void refreshCounter.value // dependency for manual refresh
+  return fileSystem.getChildren(currentPath.value)
+})
 
 const pathParts = computed(() => {
   if (currentPath.value === '/') return ['根目录']
@@ -148,7 +152,7 @@ function fullPath(itemKey) {
 
 function onContext(e) {
   contextMenu.show(e.clientX, e.clientY, [
-    { label: '刷新', icon: '🔄', action: () => {} },
+    { label: '刷新', icon: '🔄', action: () => { refreshCounter.value++; selectedItem.value = null } },
     { label: '新建文件夹', icon: '📁', action: () => {
       let name = '新建文件夹'; let finalName = name; let i = 1
       const existing = new Set(items.value.map(it => it.name))

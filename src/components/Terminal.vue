@@ -89,6 +89,11 @@ const commands = {
       '  pwd         - 当前目录',
       '  cd <dir>    - 切换目录',
       '  cat <file>  - 查看文件',
+      '  mkdir <dir> - 创建目录',
+      '  touch <file>- 创建空文件',
+      '  rm <path>   - 删除文件/目录',
+      '  cp <src> <dst> - 复制文件',
+      '  mv <src> <dst> - 移动/重命名',
       '  sysinfo     - 系统信息',
       '  neofetch    - 系统信息(炫酷)',
       '  ping <host> - 测试连接',
@@ -136,6 +141,57 @@ const commands = {
     const content = fileSystem.readFile(target)
     if (content === null) return `cat: ${file}: 没有那个文件`
     return content
+  },
+  mkdir(name) {
+    if (!name) return '用法: mkdir <目录名>'
+    const target = toFSPath(name)
+    const parentPath = target.split('/').slice(0, -1).join('/') || '/'
+    const dirName = target.split('/').pop()
+    if (fileSystem.createDir(parentPath, dirName)) return ''
+    return `mkdir: 无法创建目录 "${name}"`
+  },
+  touch(name) {
+    if (!name) return '用法: touch <文件名>'
+    const target = toFSPath(name)
+    const parentPath = target.split('/').slice(0, -1).join('/') || '/'
+    const fileName = target.split('/').pop()
+    if (fileSystem.createFile(parentPath, fileName, '')) return ''
+    return `touch: 无法创建文件 "${name}"`
+  },
+  rm(path) {
+    if (!path) return '用法: rm <路径>'
+    const target = toFSPath(path)
+    if (fileSystem.deleteItem(target)) return ''
+    return `rm: 无法删除 "${path}"`
+  },
+  cp(src, dst) {
+    if (!src || !dst) return '用法: cp <源路径> <目标目录>'
+    const srcPath = toFSPath(src)
+    const dstPath = toFSPath(dst)
+    if (fileSystem.copyItem(srcPath, dstPath)) return ''
+    return `cp: 无法复制 "${src}" -> "${dst}"`
+  },
+  mv(src, dst) {
+    if (!src || !dst) return '用法: mv <源路径> <目标路径>'
+    const srcPath = toFSPath(src)
+    const dstPath = toFSPath(dst)
+    const dstParent = dstPath.split('/').slice(0, -1).join('/') || '/'
+    const dstName = dstPath.split('/').pop()
+    // try rename first (same parent)
+    const srcParent = srcPath.split('/').slice(0, -1).join('/') || '/'
+    if (srcParent === dstParent) {
+      if (fileSystem.renameItem(srcPath, dstName)) return ''
+    }
+    // cross-directory: copy then delete
+    if (fileSystem.copyItem(srcPath, dstParent)) {
+      const copiedName = fileSystem.resolvePath(srcPath).name
+      // rename copied to target name
+      const copiedPath = dstParent === '/' ? '/' + copiedName : dstParent + '/' + copiedName
+      if (copiedName !== dstName) fileSystem.renameItem(copiedPath, dstName)
+      fileSystem.deleteItem(srcPath)
+      return ''
+    }
+    return `mv: 无法移动 "${src}" -> "${dst}"`
   },
   sysinfo() {
     return [

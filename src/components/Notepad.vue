@@ -125,6 +125,15 @@ function openFromFS() {
 const closeMenu = () => { menuOpen.value = null }
 document.addEventListener('click', closeMenu)
 onUnmounted(() => document.removeEventListener('click', closeMenu))
+
+// Keyboard shortcuts
+function onKeydown(e) {
+  if (e.ctrlKey && e.key === 's') { e.preventDefault(); saveFile(); return }
+  if (e.ctrlKey && e.key === 'n') { e.preventDefault(); newFile(); return }
+  if (e.ctrlKey && e.key === 'o') { e.preventDefault(); openFromFS(); return }
+}
+document.addEventListener('keydown', onKeydown)
+onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 </script>
 
 <style scoped>

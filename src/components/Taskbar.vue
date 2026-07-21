@@ -6,6 +6,18 @@
         <span class="start-text">开始</span>
       </button>
       <div class="taskbar-divider"></div>
+      <!-- Pinned tasks -->
+      <button
+        v-for="pin in pinnedTasks"
+        :key="'pin-' + pin.id"
+        class="taskbar-item"
+        :class="{ active: windowList.some(w => w.app === pin.app && !w.minimized) }"
+        @click="onPinnedClick(pin)"
+        :title="pin.label"
+      >
+        <span class="taskbar-item-icon">{{ pin.icon }}</span>
+      </button>
+      <div v-if="pinnedTasks.length && windowList.length" class="taskbar-divider"></div>
       <button
         v-for="win in windowList"
         :key="win.id"
@@ -34,13 +46,13 @@
 <script setup>
 import { ref, inject, onMounted, onUnmounted, computed } from 'vue'
 import { uiState } from '../composables/uiState.js'
+import { pinnedTasks } from '../composables/usePinnedTasks.js'
 
 const wm = inject('wm')
 const notif = inject('notif')
 const ui = uiState
 
-// Unwrap nested refs from plain object — needed because inject returns a plain
-// object and Vue's template only auto-unwraps top-level or reactive‑nested refs.
+// Unwrap nested refs from plain object
 const windowList = computed(() => wm.windowList.value ?? [])
 const focusId = computed(() => wm.focusId.value)
 
@@ -67,6 +79,17 @@ function onTaskClick(win) {
     wm.minimizeWindow(win.id)
   } else {
     wm.focusWindow(win.id)
+  }
+}
+function onPinnedClick(pin) {
+  // find existing window of this app
+  const existing = windowList.value.find(w => w.app === pin.app)
+  if (existing) {
+    if (existing.minimized) wm.restoreWindow(existing.id)
+    else if (focusId.value === existing.id) wm.minimizeWindow(existing.id)
+    else wm.focusWindow(existing.id)
+  } else {
+    wm.openWindow(pin.app, { title: pin.label, icon: pin.icon, props: pin.args || {} })
   }
 }
 </script>
