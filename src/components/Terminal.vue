@@ -25,6 +25,7 @@
           v-model="input"
           class="term-input"
           @keydown.enter="execute"
+          @keydown.tab.prevent="tabComplete"
           @keydown.arrowUp.prevent="historyUp"
           @keydown.arrowDown.prevent="historyDown"
           spellcheck="false"
@@ -41,7 +42,11 @@ import { fileSystem } from '../composables/useFileSystem.js'
 
 const props = defineProps({
   windowId: String,
+  cwd: { type: String, default: '' },
 })
+
+const HOME = '/Users/Yocim'
+const cwdFS = ref(props.cwd || HOME)
 
 const history = ref([])
 const input = ref('')
@@ -49,8 +54,6 @@ const inputEl = ref(null)
 const outputEl = ref(null)
 const cmdHistory = ref([])
 const cmdIdx = ref(-1)
-const cwdFS = ref('/Users/Yocim') // real filesystem path
-const HOME = '/Users/Yocim'
 
 // display path: replace HOME with ~
 function displayPath(p) {
@@ -256,6 +259,37 @@ const commands = {
       '',
       '⚠ 这只是一个模拟 (笑)',
     ].join('\n')
+  }
+}
+
+function tabComplete() {
+  const val = input.value
+  const parts = val.split(/\s+/)
+  if (parts.length === 0) return
+  const partial = parts[parts.length - 1]
+  if (!partial) return
+  // get files in cwd
+  const items = fileSystem.getChildren(cwdFS.value)
+  const matches = items.filter(f => f.name.toLowerCase().startsWith(partial.toLowerCase()))
+  if (matches.length === 1) {
+    parts[parts.length - 1] = matches[0].name + (matches[0].type === 'dir' ? '/' : '')
+    input.value = parts.join(' ')
+  } else if (matches.length > 1) {
+    // find common prefix
+    let common = matches[0].name
+    for (let i = 1; i < matches.length; i++) {
+      while (!matches[i].name.toLowerCase().startsWith(common.toLowerCase())) {
+        common = common.slice(0, -1)
+        if (!common) break
+      }
+    }
+    if (common.length > partial.length) {
+      parts[parts.length - 1] = common
+      input.value = parts.join(' ')
+    } else {
+      // show matches
+      history.value.push({ type: 'output', text: matches.map(m => m.type === 'dir' ? m.name + '/' : m.name).join('  ') })
+    }
   }
 }
 

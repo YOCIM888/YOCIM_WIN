@@ -9,6 +9,7 @@
         v-for="icon in desktopIcons"
         :key="icon.id"
         :icon="icon"
+        :badge="icon.id === 'recycle' ? recycleBin.items.length : 0"
         @dblclick="openApp(icon)"
         @contextmenu.prevent.stop="onIconContext($event, icon)"
       />
@@ -40,6 +41,9 @@
 
     <!-- Notification Center -->
     <NotificationCenter />
+
+    <!-- Toast Layer -->
+    <ToastLayer />
   </div>
 </template>
 
@@ -68,6 +72,7 @@ import Notepad from './components/Notepad.vue'
 import RecycleBin from './components/RecycleBin.vue'
 import PlaceholderApp from './components/PlaceholderApp.vue'
 import TaskManager from './components/TaskManager.vue'
+import ToastLayer from './components/ToastLayer.vue'
 
 const {
   windows,

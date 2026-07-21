@@ -5,7 +5,7 @@
     @click="selected = !selected"
     @dblclick="$emit('dblclick')"
   >
-    <div class="icon-image">{{ icon.icon }}</div>
+    <div class="icon-image">{{ icon.icon }}<span v-if="badge" class="icon-badge">{{ badge }}</span></div>
     <div class="icon-label">{{ icon.label }}</div>
   </div>
 </template>
@@ -14,7 +14,8 @@
 import { ref } from 'vue'
 
 const props = defineProps({
-  icon: Object
+  icon: Object,
+  badge: { type: Number, default: 0 },
 })
 defineEmits(['dblclick'])
 
@@ -45,8 +46,26 @@ const selected = ref(false)
 }
 .icon-image {
   font-size: 36px;
+  position: relative;
   filter: drop-shadow(0 0 8px rgba(0, 240, 255, 0.4));
   transition: filter 0.2s;
+}
+.icon-badge {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  min-width: 16px;
+  height: 16px;
+  background: var(--neon-magenta);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  box-shadow: 0 0 8px rgba(255,0,255,0.5);
 }
 .desktop-icon:hover .icon-image {
   filter: drop-shadow(0 0 15px rgba(0, 240, 255, 0.7));

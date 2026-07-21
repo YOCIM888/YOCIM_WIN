@@ -11,6 +11,37 @@
           </div>
         </div>
 
+        <!-- Search -->
+        <div class="start-search">
+          <span class="search-icon">🔍</span>
+          <input
+            ref="searchEl"
+            v-model="searchQuery"
+            class="search-input"
+            placeholder="搜索应用…"
+            @keydown.escape="searchQuery = ''"
+          />
+        </div>
+
+        <!-- Search Results or Normal View -->
+        <template v-if="searchQuery">
+          <div class="start-section">
+            <div class="section-title">搜索结果</div>
+            <div class="start-list">
+              <button
+                v-for="app in filteredApps"
+                :key="app.id"
+                class="start-list-item"
+                @click="launchApp(app); ui.closeAll()"
+              >
+                <span class="app-icon-sm">{{ app.icon }}</span>
+                <span>{{ app.label }}</span>
+              </button>
+            </div>
+            <div v-if="filteredApps.length === 0" class="search-empty">未找到匹配应用</div>
+          </div>
+        </template>
+        <template v-else>
         <!-- Pinned Apps -->
         <div class="start-section">
           <div class="section-title">已固定</div>
@@ -42,11 +73,15 @@
             </button>
           </div>
         </div>
+        </template>
 
         <!-- Power -->
         <div class="start-footer">
-          <button class="power-btn" @click="ui.closeAll()">
-            <span>⏻</span> 关闭菜单
+          <button class="power-btn" @click="doShutdown">
+            <span>⏻</span> 关机
+          </button>
+          <button class="restart-btn" @click="doRestart">
+            <span>🔄</span> 重启
           </button>
         </div>
       </div>
@@ -55,11 +90,32 @@
 </template>
 
 <script setup>
-import { inject } from 'vue'
+import { inject, ref, computed, watch, nextTick } from 'vue'
 import { uiState } from '../composables/uiState.js'
 
 const wm = inject('wm')
+const notif = inject('notif')
 const ui = uiState
+
+const searchQuery = ref('')
+const searchEl = ref(null)
+
+// all apps combined for search
+const allAppsFlat = [...pinnedApps, ...allApps]
+
+const filteredApps = computed(() => {
+  const q = searchQuery.value.toLowerCase().trim()
+  if (!q) return allAppsFlat
+  return allAppsFlat.filter(a => a.label.toLowerCase().includes(q))
+})
+
+// auto-focus search when menu opens, clear when closes
+watch(() => ui.startMenuOpen, (open) => {
+  if (open) {
+    searchQuery.value = ''
+    nextTick(() => searchEl.value?.focus())
+  }
+})
 
 const pinnedApps = [
   { id: 'explorer', label: '文件资源管理器', icon: '📁', app: 'explorer', args: { path: '/' } },
@@ -84,6 +140,20 @@ function launchApp(app) {
     icon: app.icon,
     props: app.args || {},
   })
+}
+
+function doShutdown() {
+  ui.closeAll()
+  // close all windows
+  wm.windowList.value.forEach(w => wm.closeWindow(w.id))
+  notif.add('系统', '系统已关机', 'warning')
+}
+
+function doRestart() {
+  ui.closeAll()
+  // close all windows
+  wm.windowList.value.forEach(w => wm.closeWindow(w.id))
+  notif.add('系统', '系统已重启', 'info')
 }
 </script>
 
@@ -138,6 +208,35 @@ function launchApp(app) {
   font-size: 10px;
   color: var(--neon-green);
   text-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
+}
+
+.start-search {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border-glow);
+}
+.search-icon { font-size: 14px; opacity: 0.6; }
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: 1px solid var(--border-glow);
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: var(--text-bright);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 8px rgba(0,240,255,0.2); }
+.search-input::placeholder { color: var(--text-dim); }
+.search-empty {
+  text-align: center;
+  padding: 16px;
+  color: var(--text-dim);
+  font-size: 11px;
 }
 
 .start-section {
@@ -231,6 +330,30 @@ function launchApp(app) {
   border-color: rgba(255, 50, 80, 0.4);
   color: #ff4466;
   box-shadow: 0 0 15px rgba(255, 50, 80, 0.2);
+}
+.restart-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--border-glow);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+  margin-top: 4px;
+}
+.restart-btn:hover {
+  background: rgba(0, 240, 255, 0.1);
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
 }
 
 /* Transition */

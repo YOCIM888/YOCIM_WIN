@@ -17,6 +17,9 @@
         </span>
       </div>
       <div class="toolbar-spacer"></div>
+      <button class="tool-btn sort-btn" @click="sortBy = sortBy === 'name' ? 'type' : 'name'" :title="sortBy === 'name' ? '按名称排序' : '按类型排序'">
+        {{ sortBy === 'name' ? '🔤' : '📂' }}
+      </button>
       <span class="item-count">{{ items.length }} 个项目</span>
     </div>
 
@@ -70,10 +73,21 @@ const selectedItem = ref(null)
 const history = ref([currentPath.value])
 const historyIdx = ref(0)
 const refreshCounter = ref(0)
+const sortBy = ref('name') // 'name' | 'type'
 
 const items = computed(() => {
-  void refreshCounter.value // dependency for manual refresh
-  return fileSystem.getChildren(currentPath.value)
+  void refreshCounter.value
+  const list = fileSystem.getChildren(currentPath.value)
+  if (sortBy.value === 'type') {
+    return [...list].sort((a, b) => {
+      if (a.type !== b.type) return a.type === 'dir' ? -1 : 1
+      return a.name.localeCompare(b.name)
+    })
+  }
+  return [...list].sort((a, b) => {
+    if (a.type !== b.type) return a.type === 'dir' ? -1 : 1
+    return a.name.localeCompare(b.name)
+  })
 })
 
 const pathParts = computed(() => {
@@ -170,7 +184,7 @@ function onContext(e) {
       }
     }},
     { type: 'separator' },
-    { label: '在终端中打开', icon: '⬛', action: () => wm.openWindow('terminal', { title: '终端', icon: '⬛' }) },
+    { label: '在终端中打开', icon: '⬛', action: () => wm.openWindow('terminal', { title: '终端 - ' + (currentPath.value === '/' ? '/' : currentPath.value.split('/').pop()), icon: '⬛', props: { cwd: currentPath.value } }) },
     { label: '属性', icon: '📋', action: () => notif.add('属性', `路径: ${currentPath.value}`, 'info') },
   ])
 }

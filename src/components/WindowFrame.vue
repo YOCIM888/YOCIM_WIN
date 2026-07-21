@@ -80,6 +80,29 @@ function startDrag(e) {
     dragging = false
     document.removeEventListener('mousemove', onMove)
     document.removeEventListener('mouseup', onUp)
+    // Aero Snap
+    const win = props.window
+    if (!win || win.maximized) return
+    const threshold = 30
+    const sw = window.innerWidth
+    const sh = window.innerHeight - 48
+    // Top edge → maximize
+    if (win.y < threshold) {
+      wm.maximizeWindow(win.id)
+      return
+    }
+    // Left edge → left half
+    if (win.x < threshold) {
+      win.prevBounds = { x: win.x, y: win.y, width: win.width, height: win.height }
+      win.x = 0; win.y = 0; win.width = sw / 2; win.height = sh
+      return
+    }
+    // Right edge → right half
+    if (win.x + win.width > sw - threshold) {
+      win.prevBounds = { x: win.x, y: win.y, width: win.width, height: win.height }
+      win.x = sw / 2; win.y = 0; win.width = sw / 2; win.height = sh
+      return
+    }
   }
   document.addEventListener('mousemove', onMove)
   document.addEventListener('mouseup', onUp)
