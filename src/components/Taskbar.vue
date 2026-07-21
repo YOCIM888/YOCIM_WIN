@@ -1,7 +1,7 @@
 <template>
   <div class="taskbar">
     <div class="taskbar-left">
-      <button class="start-btn" @click="ui.toggleStart" :class="{ active: ui.startMenuOpen }">
+      <button class="start-btn" @click.stop="ui.toggleStart" :class="{ active: ui.startMenuOpen }">
         <span class="start-icon">⬡</span>
         <span class="start-text">开始</span>
       </button>
@@ -39,11 +39,11 @@
     </div>
     <div class="taskbar-right">
       <div class="taskbar-divider"></div>
-      <button class="tray-btn" @click="ui.toggleNotif" :class="{ active: ui.notifCenterOpen }" title="通知中心">
+      <button class="tray-btn" @click.stop="ui.toggleNotif" :class="{ active: ui.notifCenterOpen }" title="通知中心">
         <span class="tray-icon">💬</span>
         <span v-if="notif.list.length" class="tray-badge">{{ notif.list.length }}</span>
       </button>
-      <div class="tray-clock" @click="ui.toggleNotif">
+      <div class="tray-clock" @click.stop="ui.toggleNotif">
         <span class="clock-time">{{ time }}</span>
         <span class="clock-date">{{ date }}</span>
       </div>
